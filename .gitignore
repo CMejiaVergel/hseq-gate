@@ -29,3 +29,11 @@ quest-apk/build/
 *.apk
 tests/.out/
 app/tests/.out/
+
+resultados-quest/
+quest-apk/app/
+quest-apk/gradle/
+quest-apk/gradlew*
+quest-apk/*.gradle
+quest-apk/gradle.properties
+quest-apk/manifest-checksum.txt

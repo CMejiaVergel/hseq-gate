@@ -1,7 +1,7 @@
 {
   "name": "hseq-gate",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "HSEQ Gate · Simulador de entrenamiento HSEQ en realidad virtual para Meta Quest 3S (Voltac Systems)",
   "type": "module",
   "scripts": {

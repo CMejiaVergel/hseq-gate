@@ -44,3 +44,28 @@ Pasos para el dueño (con lo aprendido; ver `R\ESTADO.md`):
    aceptado) → subir el APK al canal **ALPHA** → invitar correos. Subir `appVersionCode` en cada envío.
 
 **La llave y su contraseña nunca van al repo ni al chat.** Copia de seguridad fuera del PC.
+
+## Estado preparado en la Etapa 8 (listo para el dueño)
+| Pieza | Estado |
+|---|---|
+| `deploy.ps1` + `deploy-remote.sh` | Adaptados a `/hseq/` (reemplazo de `hseq.tmp` → `hseq`, sin tocar `/`, `/mr/`, `/pid/`, `/lib/`, `/.well-known/`). Probado en seco: `powershell -ExecutionPolicy Bypass -File .\deploy.ps1 -SkipBuild -DryRun`. **No ejecutado.** |
+| `quest.ps1` | Paquete `co.com.voltac.hseqgate`; `-Install`, `-Stop`, `-PullResults` (trae `/sdcard/Download/hseqgate-*.json` a `resultados-quest\`). Sintaxis verificada; adb de Developer Hub encontrado. |
+| `quest-apk\twa-manifest.json` | Modo **immersive**, `startUrl /hseq/?app=quest`, XR Scene no, sin notificaciones/micrófono/billing, `appVersionCode 1`, llave relativa `android.keystore` (alias `android`). |
+| PWA | `manifest.json` (`ovr_package_name co.com.voltac.hseqgate`), `sw.js` `hseqgate-v1`; la prueba de humo verifica registro y **carga sin conexión**. |
+
+Orden exacto para el dueño (en `HSEQ Gate\`):
+```
+powershell -ExecutionPolicy Bypass -File .\deploy.ps1          # 1. publicar /hseq/ (compila y prueba antes)
+cd quest-apk
+bubblewrap.cmd update                                          # 2. genera el proyecto Android desde twa-manifest.json
+                                                               #    (si pide init: bubblewrap.cmd init --manifest=https://digital-twins.voltac.com.co/hseq/manifest.json --metaquest)
+# 3. crear la llave (paso 3 de arriba) y compilar/firmar a mano (paso 4) → quest-apk\HSEQGate.apk
+# 4. assetlinks.json: AGREGAR la entrada de co.com.voltac.hseqgate (paso 5), sin borrar la de Smart Plant 3D
+cd ..
+powershell -ExecutionPolicy Bypass -File .\quest.ps1 -Install  # 5. instalar y abrir en las gafas
+```
+
+**Pendiente de verificar en el visor real** (no se puede en el PC): que desde el APK inmersivo el panel del
+instructor pueda descargar el JSON; si no, la vía es abrir `https://digital-twins.voltac.com.co/hseq/` en el
+navegador del visor (mismo origen → mismos datos de IndexedDB… **verificar**: el APK TWA y el navegador
+pueden no compartir almacenamiento) y exportar desde ahí; luego `quest.ps1 -PullResults`.
