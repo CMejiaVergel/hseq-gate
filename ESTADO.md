@@ -8,20 +8,63 @@ Simulador VR de entrenamiento HSEQ (LOTO, alturas, espacios confinados) para Met
 sobre la base técnica de Smart Plant 3D (`..\digital-twins-3d\mr-twin`).
 
 ## Estado actual
-- Etapa en curso: **Etapa 8 — Pulido, rendimiento, PWA y APK**
-- Versión: 0.1.0 · En producción: no
-- Funciona: portada → lobby (cédula, escenario, modo) → escenario demo (tableta, avisos, resaltado, flecha guía, paneles de objeto, consecuencia crítica) → debrief → lobby, en PC y en emulador VR; intentos guardados en IndexedDB
-- Bloqueos: ninguno
+- Etapa: **9 — Punto de revisión (PARADA)**. Todas las etapas 0–8 terminadas y verificadas.
+- Versión: **1.0.0** · En producción: **no** (falta que el dueño despliegue)
+- Funciona: lobby → 3 escenarios (LOTO, alturas, espacios confinados) + demo, en los 3 modos, en PC y en VR (emulador) → debrief → registros → panel del instructor → certificado; PWA sin conexión
+- Bloqueos: ninguno técnico; lo pendiente requiere al dueño (ver abajo)
 
 ## Siguiente paso
-Ejecutar la **Etapa 8** (medición de rendimiento por escenario, versión 1.0.0 en splash, SW offline, deploy.ps1/deploy-remote.sh/quest.ps1 adaptados SIN ejecutar, quest-apk/twa-manifest.json, README con capturas) y luego la Etapa 9 (resumen de revisión y PARADA).
+**Revisión del dueño** (resumen de abajo). Después: acciones (a)–(e). El asistente no despliega, no hace push ni firma.
+
+## RESUMEN DE REVISIÓN (Etapa 9)
+### Qué hay
+- **App web WebXR** en `app/` (Vite 8 + React 19 + three 0.186 + @react-three/xr), base técnica de Smart Plant 3D (72 Hz, sin agarre ni manos, mallas de selección en capa 5, lotes por material).
+- **Motor de escenarios por datos** (`app/src/engine/`): 20 kinds, condiciones serializables, fases strict/any, errores menor/mayor/crítico con consecuencia, modos, pistas, temporizadores, disparadores, zonas espaciales, variantes por semilla, validador y reproducción exacta desde la traza.
+- **Escenarios** (`app/src/scenarios/`): LOTO bomba P-101 (23 pasos, 4 críticos), Alturas luminaria a 6 m (19 pasos, 4 críticos), Espacios confinados cámara CV-07 (20 pasos, 5 críticos), Demo de controles. Umbrales en `limits.js` (`// VALIDAR HSE`).
+- **Entornos procedurales** (`app/src/world/`): lobby, casa de bombas + cuarto eléctrico, rack con plataforma y borde sin baranda, explanada con foso caminable.
+- **Experiencia VR/PC**: tableta (mano izquierda / Tab), avisos, resaltado y flecha guía, paneles de objeto (documentos, diálogos NPC, inspección de arnés, detector multigás, probador, puntos de bloqueo), consecuencias confortables (sin rotar cámara), sonido WebAudio, debrief.
+- **Registros**: IndexedDB local, panel del instructor (CSV de aprendices, resultados filtrables, exportar/importar JSON y CSV, borrar datos de una persona), certificado imprimible con código de verificación.
+- **Entrega**: PWA offline, `deploy.ps1`/`deploy-remote.sh` (/hseq/), `quest.ps1` (-Install/-Stop/-PullResults), `quest-apk/twa-manifest.json` (immersive).
+
+### Cómo probarlo en 5 minutos
+- **PC**: `cd app; npm install; npm run build; npm run preview -- --mode plain --port 4180` → `http://localhost:4180/hseq/` → «Recorrer en el PC». Lobby: digita una cédula + OK, escenario, modo, Comenzar. Teclas: WASD, ratón, clic/Espacio, E, F, Q, Tab, R.
+- **Visor** (tras desplegar): navegador de Meta Quest → `https://digital-twins.voltac.com.co/hseq/` → «Entrar en realidad virtual»; o el APK (entra solo). En la misma wifi sin desplegar: `npm run dev` y abrir `https://<ip-del-pc>:5173/hseq/` (el 5173 lo usa hoy Smart Plant 3D: usar `--port 5174`).
+- **Instructor**: portada → «Panel del instructor».
+- **Pruebas**: `npm test` (86), `npm run smoke`, `node tests/emu-flow.mjs`.
+
+### Capturas
+`docs/capturas/`: lobby, loto-*, alturas-*, confinados-*, demo-*, instructor-*, certificado, emulador-* (las regenera `npm run smoke`).
+
+### Limitaciones conocidas
+- **No probado en un Quest 3S real**: rendimiento (72 Hz), comodidad, legibilidad de paneles y ergonomía de los mandos solo se verificaron en PC (Edge headless/SwiftShader) y en el emulador IWER. Medido en PC: ≤ 27 llamadas de dibujo y ≤ 8 k triángulos por vista (presupuesto 90 / 250 k). El tiempo de CPU de render (≤ 4 ms) no es medible con SwiftShader.
+- Escenario de confinados usa una luz puntual dentro del foso (costo por fragmento): vigilar en el visor.
+- Probador de tensión y detector son fijos (se operan desde su panel), no se llevan en la mano.
+- Sin descarga verificada desde el APK inmersivo ni almacenamiento compartido APK↔navegador (ver docs/10, «Pendiente de verificar»).
+- Datos solo locales por dispositivo (sin sincronización: backlog).
+- Las NPC son estáticas (el compañero de alturas no camina; la herramienta que cae es una animación simple).
+
+### Decisiones tomadas
+Ver sección «Decisiones tomadas» (más abajo): ajustes de puntaje a 100 en LOTO y alturas, kinds/condiciones extra del motor, críticos que cancelan la acción, alarma siempre presente en confinados, builder simplificado, etc.
+
+### Acciones que requieren al dueño
+- **(a) Aprobar dominio/ruta y desplegar**: por defecto `https://digital-twins.voltac.com.co/hseq/` → `powershell -ExecutionPolicy Bypass -File .deploy.ps1` (probado en seco con `-DryRun`). Alternativa subdominio: requiere DNS + nginx + certificado.
+- **(b) Crear el repo remoto y hacer push**: `gh repo create CMejiaVergel/hseq-gate --private --source . --push` (o crear en GitHub y `git remote add origin … ; git push -u origin main`). Actualizar la columna «Remoto» en `VOLTAC_DEVPROYECTOS.md`.
+- **(c) Crear la llave y firmar el APK**: pasos exactos en `docs/10-despliegue-y-apk.md` (bubblewrap update → keytool → gradlew → zipalign → apksigner → `quest-apkHSEQGate.apk`); agregar la entrada de `co.com.voltac.hseqgate` a `/.well-known/assetlinks.json` SIN borrar la de Smart Plant 3D. La llave nunca va al repo.
+- **(d) Validación HSE del contenido**: un profesional HSE debe revisar pasos, mensajes y umbrales en `app/src/scenarios/loto.js`, `alturas.js`, `confinados.js` y `limits.js` (todo lo marcado `// VALIDAR HSE`).
+- **(e) Developer Dashboard**: crear la app «HSEQ Gate» (organización Voltac Systems), subir el APK al canal **ALPHA**, invitar correos; subir `appVersionCode` en cada envío.
+
+### Pendientes (no bloquean la revisión)
+- Prueba en visor real (rendimiento, comodidad de la caída y el desvanecimiento, tamaño de textos).
+- Verificar exportación de resultados desde el APK y `quest.ps1 -PullResults`.
+- Backlog de escenarios y funciones: `docs/11-backlog-escenarios.md`.
 
 ## Cómo probar
 ```
 cd app
 npm run build ; npm test ; npm run smoke     # smoke: Edge headless en :4180, capturas en docs/capturas
-node tests/emu.mjs                           # entra a VR con el emulador IWER (puerto 5174)
-npm run dev:plain                            # desarrollo; OJO: el 5173 lo usa Smart Plant 3D → usar --port 5174
+node tests/emu.mjs ; node tests/emu-flow.mjs # VR con el emulador IWER (puerto 5174)
+node tests/leak.mjs                          # memoria de GPU estable entre escenarios
+npm run dev:plain -- --port 5174             # desarrollo (el 5173 lo usa Smart Plant 3D)
 ```
 
 ## Avance por etapa
@@ -35,8 +78,8 @@ npm run dev:plain                            # desarrollo; OJO: el 5173 lo usa S
 | 5 Escenario Alturas | ✅ | feat: escenario alturas | 12 pruebas; completo en los 3 modos; 13 llamadas de dibujo |
 | 6 Escenario Espacios confinados | ✅ | feat: escenario espacios confinados | 13 pruebas; completo en los 3 modos; 27 llamadas de dibujo |
 | 7 Evaluación, registros y certificado | ✅ | feat: registros y certificado | 8 pruebas de registros; smoke: aprendiz → escenario → panel → certificado |
-| 8 Pulido, rendimiento, PWA y APK | ⏳ | | |
-| 9 Punto de revisión | ⏳ | | |
+| 8 Pulido, rendimiento, PWA y APK | ✅ | chore: v1.0.0 lista para revisión | scripts probados en seco; smoke + emulador OK |
+| 9 Punto de revisión | 🛑 PARADA | docs: resumen de revisión | esperando al dueño (acciones a–e) |
 
 ## Decisiones tomadas
 - 2026-10-17 Builder y materiales simplificados (no se copió el sistema de lotes con OwnerTable de mr-twin) — los escenarios son pequeños y estáticos; basta fusionar por material/familia con color por vértice: mismo efecto en llamadas de dibujo, mucho menos código.
@@ -72,6 +115,10 @@ npm run dev:plain                            # desarrollo; OJO: el 5173 lo usa S
 - (ninguno)
 
 ## Bitácora
+### 2026-10-17 — Etapas 8 y 9
+- v1.0.0; `deploy.ps1` (-DryRun probado), `deploy-remote.sh`, `quest.ps1` (sintaxis verificada, -PullResults), `quest-apk/twa-manifest.json`, docs/10 con el orden exacto, README con capturas. Verificación final: build OK, 86 pruebas, smoke OK (3 escenarios × 3 modos, críticos, instructor, certificado, offline), emulador VR OK.
+- Resumen de revisión escrito. **Parada**: despliegue, push, firma del APK, validación HSE y tienda quedan para el dueño.
+
 ### 2026-10-17 — Etapa 7 Evaluación, registros y certificado
 - `records/exchange.js` (CSV de aprendices y resultados, exportar/importar JSON con fusión sin duplicados), `records/certificate.js` (constancia imprimible, solo aprobados en evaluación, texto escapado). `ui/Instructor.jsx`: Resultados (filtros, detalle con pasos y errores, certificado), Aprendices (formulario, CSV, eliminar datos de una persona — habeas data), Exportar/importar. Botón en la portada.
 - Pruebas: `tests/records/records.test.js` (8, incluye reproducir un intento guardado). Total vitest: 86. Smoke: registra aprendiz en el panel → escenario por script → resultado en la tabla → certificado.
