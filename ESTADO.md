@@ -8,13 +8,13 @@ Simulador VR de entrenamiento HSEQ (LOTO, alturas, espacios confinados) para Met
 sobre la base técnica de Smart Plant 3D (`..\digital-twins-3d\mr-twin`).
 
 ## Estado actual
-- Etapa en curso: **Etapa 7 — Evaluación, registros y certificado**
+- Etapa en curso: **Etapa 8 — Pulido, rendimiento, PWA y APK**
 - Versión: 0.1.0 · En producción: no
 - Funciona: portada → lobby (cédula, escenario, modo) → escenario demo (tableta, avisos, resaltado, flecha guía, paneles de objeto, consecuencia crítica) → debrief → lobby, en PC y en emulador VR; intentos guardados en IndexedDB
 - Bloqueos: ninguno
 
 ## Siguiente paso
-Ejecutar la **Etapa 7** (panel del instructor 2D: aprendices CSV, resultados, exportar/importar JSON y CSV, certificado imprimible, borrar datos de una persona; pruebas de registros; smoke del flujo completo) y seguir con la 8.
+Ejecutar la **Etapa 8** (medición de rendimiento por escenario, versión 1.0.0 en splash, SW offline, deploy.ps1/deploy-remote.sh/quest.ps1 adaptados SIN ejecutar, quest-apk/twa-manifest.json, README con capturas) y luego la Etapa 9 (resumen de revisión y PARADA).
 
 ## Cómo probar
 ```
@@ -34,7 +34,7 @@ npm run dev:plain                            # desarrollo; OJO: el 5173 lo usa S
 | 4 Escenario LOTO | ✅ | feat: escenario LOTO | 15 pruebas; completo en los 3 modos; 27 llamadas de dibujo |
 | 5 Escenario Alturas | ✅ | feat: escenario alturas | 12 pruebas; completo en los 3 modos; 13 llamadas de dibujo |
 | 6 Escenario Espacios confinados | ✅ | feat: escenario espacios confinados | 13 pruebas; completo en los 3 modos; 27 llamadas de dibujo |
-| 7 Evaluación, registros y certificado | ⏳ | | |
+| 7 Evaluación, registros y certificado | ✅ | feat: registros y certificado | 8 pruebas de registros; smoke: aprendiz → escenario → panel → certificado |
 | 8 Pulido, rendimiento, PWA y APK | ⏳ | | |
 | 9 Punto de revisión | ⏳ | | |
 
@@ -65,11 +65,17 @@ npm run dev:plain                            # desarrollo; OJO: el 5173 lo usa S
 - 2026-10-17 Motor: disparadores con `delayFrom` (retardo desde la variante) y `retry.set` (al reintentar tras «ignorar la alarma» el aprendiz queda afuera).
 - 2026-10-17 Las pruebas de humo esperan por TIEMPO DEL MOTOR (no por reloj): en Edge headless los cuadros son lentos y el motor avanza menos que el reloj real.
 - 2026-10-17 Fuga de GPU corregida: cada objeto construido con el colector se libera con `useDisposable` (al cambiar de versión o desmontarse). Antes crecía ~11 geometrías por ciclo lobby↔escenario; ahora es estable (`tests/leak.mjs`).
+- 2026-10-17 Certificado en una capa con iframe (srcdoc) dentro del panel, con «Imprimir / Guardar PDF» y «Descargar HTML» — evita ventanas emergentes bloqueadas (navegador del visor). Logo para fondo claro redimensionado a 600 px desde `digital-twins-3d/Resources`.
+- 2026-10-17 CSV de resultados con punto y coma y BOM (Excel en español); importación de aprendices acepta coma o punto y coma, encabezado opcional y comillas.
 
 ## Bloqueos
 - (ninguno)
 
 ## Bitácora
+### 2026-10-17 — Etapa 7 Evaluación, registros y certificado
+- `records/exchange.js` (CSV de aprendices y resultados, exportar/importar JSON con fusión sin duplicados), `records/certificate.js` (constancia imprimible, solo aprobados en evaluación, texto escapado). `ui/Instructor.jsx`: Resultados (filtros, detalle con pasos y errores, certificado), Aprendices (formulario, CSV, eliminar datos de una persona — habeas data), Exportar/importar. Botón en la portada.
+- Pruebas: `tests/records/records.test.js` (8, incluye reproducir un intento guardado). Total vitest: 86. Smoke: registra aprendiz en el panel → escenario por script → resultado en la tabla → certificado.
+
 ### 2026-10-17 — Etapa 6 Escenario Espacios confinados
 - `scenarios/confinados.js` (8 fases, 20 pasos, 10 errores: 5 críticos), modelo de atmósfera por nivel con tiempo comprimido (ventilación) y fuga de H₂S en la alarma; vigía y supervisora con diálogos; requisitos físicos (llave de tapa, válvulas cerradas para la brida, trípode y arnés para la línea del winche). `world/confinados/ConfinadosWorld.jsx`: explanada, foso caminable de 3,5 m con escalera fija, línea con V-71/V-72 y brida ciega, ventilador con ducto, trípode, detector con pantalla, detector personal con alarma, NPCs.
 - Pruebas: `tests/scenarios/confinados.test.js` (13). Smoke: completo en los 3 modos, desvanecimiento al bajar sin medir. Total vitest: 78.

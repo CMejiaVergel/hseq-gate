@@ -10,7 +10,7 @@
  */
 const VERSION = 'hseqgate-v1'
 const BASE = new URL('./', self.location).pathname            // '/hseq/'
-const CORE = ['./', 'manifest.json', 'favicon.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/logo-voltac.png']
+const CORE = ['./', 'manifest.json', 'favicon.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/logo-voltac.png', 'icons/logo-voltac-claro.png']
 
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {

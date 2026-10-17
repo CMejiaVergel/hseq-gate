@@ -7,6 +7,7 @@ import { useApp } from './store.js'
 import { PICK_LAYER } from './scene/interact.js'
 import { APP_VERSION } from './ui/XrOverlays.jsx'
 import Hud from './ui/Hud.jsx'
+import Instructor from './ui/Instructor.jsx'
 
 /*
  * App = canvas 3D + capa DOM.  En el navegador 2D el DOM ofrece la portada, el panel del
@@ -29,6 +30,7 @@ export default function App() {
   const [vr, setVr] = useState(null)
   const [inSession, setInSession] = useState(false)
   const view = useApp((s) => s.view)
+  const screen = useApp((s) => s.screen)
   const quality = useApp((s) => s.quality)
 
   useEffect(() => {
@@ -68,7 +70,9 @@ export default function App() {
 
       {!inSession && view === 'fp' && <Hud />}
 
-      {!inSession && !view && (
+      {!inSession && screen === 'instructor' && <Instructor />}
+
+      {!inSession && !view && screen !== 'instructor' && (
         <div className="overlay">
           <header>
             <span className="brand">HSEQ GATE</span>
@@ -81,6 +85,7 @@ export default function App() {
               {vr === false ? 'Este navegador no soporta realidad virtual' : 'Entrar en realidad virtual'}
             </button>
             <button className="enter alt" onClick={enterPC}>Recorrer en el PC (primera persona)</button>
+            <button className="enter alt" onClick={() => useApp.getState().setScreen('instructor')}>Panel del instructor · resultados y certificados</button>
             <p className="hint">PC: W A S D para caminar, ratón para mirar, clic para interactuar, E tomar/soltar, F usar objeto o escalera, Q siguiente objeto, Tab tableta. Visor: stick izquierdo camina, derecho gira (adelante y soltar = teletransporte), gatillo interactúa, grip toma, A usa, B inventario, Y tableta.</p>
           </main>
           <footer>
