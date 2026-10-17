@@ -6,6 +6,7 @@ import { xrStore } from './xr/store.js'
 import { useApp } from './store.js'
 import { PICK_LAYER } from './scene/interact.js'
 import { APP_VERSION } from './ui/XrOverlays.jsx'
+import Hud from './ui/Hud.jsx'
 
 /*
  * App = canvas 3D + capa DOM.  En el navegador 2D el DOM ofrece la portada, el panel del
@@ -47,7 +48,7 @@ export default function App() {
   }, [])
 
   const dpr = quality === 'high' ? [1, 2] : quality === 'medium' ? [1, 1.5] : [0.8, 1]
-  const enterPC = () => { useApp.getState().setView('fp') }
+  const enterPC = () => { const st = useApp.getState(); st.setView('fp'); st.setScreen('lobby') }
 
   return (
     <>
@@ -65,7 +66,7 @@ export default function App() {
         </XR>
       </Canvas>
 
-      {!inSession && view === 'fp' && <div className="crosshair" />}
+      {!inSession && view === 'fp' && <Hud />}
 
       {!inSession && !view && (
         <div className="overlay">

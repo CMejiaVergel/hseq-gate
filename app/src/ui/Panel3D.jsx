@@ -189,11 +189,16 @@ export default function Panel3D({ ref, widgets, width = 0.42, onAction, position
   const texture = useMemo(() => { const t = new THREE.CanvasTexture(canvas); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t }, [canvas])
   const [height, setHeight] = useState(1024)
   const CH = canvas.height
+  const drawn = useRef('')
   useEffect(() => () => texture.dispose(), [texture])
 
   /* El lienzo nunca cambia de tamaño (three asigna la textura con almacenamiento inmutable): se dibuja
      en la franja superior y la textura muestra solo esa franja con repeat/offset. */
   useEffect(() => {
+    /* solo se redibuja (y se sube a la GPU) si el contenido cambió de verdad */
+    const key = JSON.stringify(widgets) + '|' + (hover?.id ?? '')
+    if (key === drawn.current) return
+    drawn.current = key
     const ctx = canvas.getContext('2d')
     const { height: h } = layout(ctx, widgets, hover, true)
     const H = Math.min(CH, Math.max(120, Math.ceil(h / 8) * 8))

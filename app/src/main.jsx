@@ -3,6 +3,9 @@ import App from './App.jsx'
 import './styles.css'
 import { useApp } from './store.js'
 import { xrStore } from './xr/store.js'
+import * as bridge from './run/bridge.js'
+import * as records from './records/records.js'
+import { PLAYER } from './walk/walk.js'
 
 /*
  * Solo en desarrollo: /hseq/?emu=1 oculta el WebXR nativo del navegador de escritorio para que
@@ -14,7 +17,11 @@ if (import.meta.env.DEV && new URLSearchParams(location.search).has('emu')) {
 
 /* ganchos de depuración y de la prueba de humo: en DEV siempre; en producción solo con ?debug=1 */
 const DEBUG = import.meta.env.DEV || new URLSearchParams(location.search).has('debug')
-if (DEBUG) window.__hseq = { app: useApp, xr: xrStore }
+if (DEBUG) window.__hseq = {
+  app: useApp, xr: xrStore, records, player: PLAYER, bridge,
+  run: () => bridge.getRun(), act: bridge.act, start: bridge.startScenario, snapshot: () => bridge.getRun()?.snapshot(),
+  scenario: () => bridge.getRun()?.scenario,
+}
 
 createRoot(document.getElementById('root')).render(<App />)
 

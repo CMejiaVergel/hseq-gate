@@ -50,7 +50,7 @@ export default function FirstPerson() {
     const clickCenter = () => {
       raycaster.setFromCamera(_c, camera)
       if (pressPanelAt(raycaster)) return
-      A.trigger(aim()?.obj)
+      A.trigger(aim())
     }
     const down = (e) => {
       if (e.target?.tagName === 'INPUT' || e.target?.tagName === 'TEXTAREA') return

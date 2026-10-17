@@ -39,7 +39,7 @@ export function aimAt(raycaster, camera, ndc, far = 6) {
   raycaster.far = prev
   for (const h of hits) {
     const t = findObj(h.object)
-    if (t) return { obj: t.obj, point: h.point, distance: h.distance }
+    if (t) return { obj: t.obj, verb: t.object.userData.verb, point: h.point, distance: h.distance }
   }
   return null
 }

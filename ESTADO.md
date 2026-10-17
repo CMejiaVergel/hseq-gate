@@ -8,13 +8,13 @@ Simulador VR de entrenamiento HSEQ (LOTO, alturas, espacios confinados) para Met
 sobre la base técnica de Smart Plant 3D (`..\digital-twins-3d\mr-twin`).
 
 ## Estado actual
-- Etapa en curso: **Etapa 2 — Lobby y flujo de sesión**
+- Etapa en curso: **Etapa 4 — Escenario LOTO**
 - Versión: 0.1.0 · En producción: no
-- Funciona: portada, modo PC (WASD) y entrada a VR en emulador sobre escena de prueba; build, vitest y smoke en verde
+- Funciona: portada → lobby (cédula, escenario, modo) → escenario demo (tableta, avisos, resaltado, flecha guía, paneles de objeto, consecuencia crítica) → debrief → lobby, en PC y en emulador VR; intentos guardados en IndexedDB
 - Bloqueos: ninguno
 
 ## Siguiente paso
-Ejecutar la **Etapa 2** (store de sesión, lobby 3D, puente motor↔React, tableta, avisos, debrief con el escenario demo) y seguir con la Etapa 3.
+Ejecutar la **Etapa 4** (entorno `world/loto/`, `scenarios/loto.js` según docs/03, pruebas camino feliz + cada crítico + semillas, capturas `docs/capturas/loto-*.png`) y seguir con la 5.
 
 ## Cómo probar
 ```
@@ -29,8 +29,8 @@ npm run dev:plain                            # desarrollo; OJO: el 5173 lo usa S
 |---|---|---|---|
 | 0 Fundaciones | ✅ | chore: fundaciones del proyecto | build + vitest + smoke + emulador OK |
 | 1 Motor de escenarios | ✅ | feat: motor de escenarios | 38 pruebas vitest |
-| 2 Lobby y flujo de sesión | ⏳ | | |
-| 3 Kit de interacción | ⏳ | | |
+| 2 Lobby y flujo de sesión | ✅ | feat: lobby, tableta, flujo de sesión y kit de interacción | smoke recorre lobby→demo→debrief y crítico en evaluación |
+| 3 Kit de interacción | ✅ | (mismo commit que la 2) | PC: Espacio abre documento, E agarra; demo 18 llamadas de dibujo |
 | 4 Escenario LOTO | ⏳ | | |
 | 5 Escenario Alturas | ⏳ | | |
 | 6 Escenario Espacios confinados | ⏳ | | |
@@ -50,11 +50,20 @@ npm run dev:plain                            # desarrollo; OJO: el 5173 lo usa S
 - 2026-10-17 Motor: condiciones extra `count`, `timer`, `elapsed`, `complete`, `sequence`, `mode`, `variant`, `phaseDone` y rutas con punto en `state` (`detector.lecturas.fondo.ok`) — cubren detector, probador (probar-medir-probar) y checklists siguiendo serializables.
 - 2026-10-17 Motor: un crítico CANCELA la acción que lo provoca; en aprendizaje/práctica el intento queda en pausa y `retry()` sigue desde ese mismo estado (= reintentar desde el paso). Pasos de fases futuras cumplidos antes de tiempo también cuentan como fuera-de-orden (una vez, por transición).
 - 2026-10-17 Traza del intento incluye muestras de posición (`_pos`, cada 0,4 m) y reintentos (`_retry`) — permite reproducir también los errores espaciales (borde).
+- 2026-10-17 Etapas 2 y 3 en un solo commit — el puente, los paneles y el kit dependen entre sí; un commit intermedio no compilaba.
+- 2026-10-17 La instantánea del motor se publica con estructura compartida y Panel3D compara el contenido antes de redibujar — sin esto la tableta y los objetos con estado se repintaban 4 veces por segundo (lección 7 de docs/09).
+- 2026-10-17 Probador de tensión y detector son objetos fijos con panel de acciones (no se llevan en la mano) — más simple de operar en VR y en PC; el protocolo probar-medir-probar se conserva en los datos.
+- 2026-10-17 Paneles de objeto (documento, diálogo, inspección, detector, punto de bloqueo…) aparecen fijos delante de la vista y se cierran al alejarse 3,5 m; avisos arriba del centro.
 
 ## Bloqueos
 - (ninguno)
 
 ## Bitácora
+### 2026-10-17 — Etapas 2 y 3 Lobby, flujo de sesión y kit de interacción
+- `run/bridge.js` (runner fuera de React, instantánea en zustand, eventos → avisos/sonidos/consecuencias, registro del intento), `records/` (IndexedDB + memoria), lobby 3D (`world/lobby`, `ui/LobbyPanels`), tableta, avisos, panel de objeto por kind, consecuencia, debrief, HUD del PC, flecha guía.
+- Kit: `interact/kit.jsx` (Pick+resaltado, Valve, Breaker, PushButtons, Item, LockPoint, Gauge, StateSwitch, FanBlades, Screen), `interact/parts.js` (cuerpos estáticos fusionables), `interact/handlers.js` (gatillo/grip/A/B/X/escaleras → motor). Efectos `world/effects` (WebAudio procedural + viñeta). Entorno demo.
+- Pruebas: smoke (lobby, demo por script e interacción real con teclado/ratón, crítico, IndexedDB, rendimiento), `tests/emu-flow.mjs` (VR emulado: lobby → demo).
+
 ### 2026-10-17 — Etapa 1 Motor de escenarios
 - `src/engine/`: rng (mulberry32), conditions, kinds (20 kinds), runner (act/tick/hint/retry/abandon/snapshot/result/on), scoring, validate, replay. `src/scenarios/limits.js` con todos los umbrales (`// VALIDAR HSE`). Escenario de juguete `src/scenarios/demo.js` (= `tests/fixtures/demo.js`).
 - Pruebas: tests/engine (conditions, kinds, runner, validate+scoring): 38 en verde.

@@ -64,3 +64,7 @@ main p { margin: 0 0 16px; color: var(--mute); line-height: 1.45; font-size: 15p
 .crosshair::before { left: 8px; top: 2px; width: 2px; height: 14px; }
 .crosshair::after { top: 8px; left: 2px; height: 2px; width: 14px; }
 .crosshair.on::before, .crosshair.on::after { background: #3ddc84; }
+.hud-aim { position: fixed; left: 50%; top: calc(50% + 22px); transform: translateX(-50%); padding: 4px 10px; border-radius: 8px; background: rgba(8,14,26,.75); color: #fff; font-size: 14px; font-weight: 600; pointer-events: none; white-space: nowrap; }
+.hud-keys { position: fixed; left: 14px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px 12px; max-width: 60vw; color: #cfd8e6; font-size: 12px; pointer-events: none; text-shadow: 0 1px 2px #000; }
+.hud-keys span { background: rgba(8,14,26,.55); padding: 2px 7px; border-radius: 6px; }
+.hud-hand { flex-basis: 100%; font-size: 13px; color: #fff; }
