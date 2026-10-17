@@ -35,3 +35,19 @@ export const ALTURAS = (h) => [
   ['barrera', 'retirar'], ['punto-alumbrado', 'quitar', 'candado-alturas'], ['int-alumbrado', 'on'], ['permiso-alturas', 'cerrar'],
   ['quiz-rescate', 'responder', 'activar-rescate'],
 ]
+
+/* Espacios confinados: { waitT: s } espera tiempo DEL MOTOR (lecturas estables, ventilación, alarma) */
+const niveles = [['detector', 'medir', 'arriba'], { waitT: 2.4 }, ['detector', 'medir', 'medio'], { waitT: 2.4 }, ['detector', 'medir', 'fondo']]
+export const CONFINADOS = () => [
+  ...['deficiencia-o2', 'toxicos', 'inflamables', 'atrapamiento', 'energias', 'caidas'].map((i) => ['peligros', 'marcar', i]),
+  ['supervisora', 'hablar', 'revisar-permiso'], ['permiso-entrada', 'leer'], ['permiso-entrada', 'firmar'], ['vigia', 'hablar', 'confirmar-roles'],
+  ['v-entrada-1', 'close'], ['v-entrada-2', 'close'], ['brida', 'instalar'],
+  ['detector', 'encender'], ['detector', 'bump'], { waitT: 2.4 }, ...niveles,
+  ['llave-manhole', 'tomar'], ['manhole', 'abrir'], ['barrera-pozo', 'colocar'], ['ducto', 'instalar'], ['ventilador', 'on'],
+  { waitT: 21 }, ...niveles,
+  ['tripode', 'montar'], ['arnes-c', 'poner'], ['winche', 'conectar'], ['vigia', 'hablar', 'prueba-radio'], ['detector-personal', 'encender'],
+  ['escalera-foso', 'bajar'], { tp: [-0.6, -2.7, -1.27, -3.5] }, ['valvula-foso', 'inspeccionar'],
+  { waitFlag: 'alarma' }, ['escalera-foso', 'subir'], { tp: [0, -1.0, Math.PI, 0] }, ['vigia', 'hablar', 'aviso-salida'],
+  ['ducto', 'retirar'], ['ventilador', 'off'], ['tripode', 'desmontar'], ['manhole', 'cerrar'], ['permiso-entrada', 'cerrar'],
+  ['quiz-rescate-c', 'responder', 'rescate-afuera'],
+]

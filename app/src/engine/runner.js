@@ -275,11 +275,11 @@ export function createRun(scenario, { mode = 'aprendizaje', seed = 1 } = {}) {
       if (triggered.has(tr.id)) continue
       if (cond(tr.when ?? true)) {
         triggerAcc[tr.id] = (triggerAcc[tr.id] || 0) + dt
-        if (triggerAcc[tr.id] >= (tr.delay || 0)) {
+        if (triggerAcc[tr.id] >= ((tr.delayFrom && variant[tr.delayFrom] != null) ? variant[tr.delayFrom] : (tr.delay || 0))) {
           triggered.add(tr.id)
           if (tr.set) Object.assign(state, clone(tr.set))
           if (tr.flag) flags.add(tr.flag)
-          emit(evs, 'trigger', { trigger: { id: tr.id, message: tr.message || null } })
+          emit(evs, 'trigger', { trigger: { id: tr.id, message: tr.message || null, sound: tr.sound || null } })
         }
       } else if (!tr.keep) triggerAcc[tr.id] = 0
     }
@@ -305,6 +305,7 @@ export function createRun(scenario, { mode = 'aprendizaje', seed = 1 } = {}) {
     const p = pending
     pending = null
     fired.delete(p.id)          // el error crítico vuelve a estar «armado»
+    if (p.retry?.set) { Object.assign(state, clone(p.retry.set)); computeReadings() }
     return { retry: p.retry, error: p }
   }
 

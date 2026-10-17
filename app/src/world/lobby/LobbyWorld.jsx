@@ -7,6 +7,7 @@ import { signAtlas } from '../common/signs.js'
 import VRWorld from '../../scene/VRWorld.jsx'
 import LobbyPanels from '../../ui/LobbyPanels.jsx'
 import { useApp } from '../../store.js'
+import { useDisposable } from '../../geometry/dispose.js'
 
 /*
  * Lobby — «Sala de inducción» (docs/06): sala sencilla con el logo de Voltac, señalética de
@@ -49,6 +50,7 @@ export default function LobbyWorld() {
     return { group: g, logo }
   }, [])
 
+  useDisposable(group); useDisposable(logo)
   useEffect(() => { useApp.getState().requestTeleport({ ...LOBBY_SPAWN, y: 0 }) }, [])
 
   return (

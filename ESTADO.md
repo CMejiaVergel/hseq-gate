@@ -8,13 +8,13 @@ Simulador VR de entrenamiento HSEQ (LOTO, alturas, espacios confinados) para Met
 sobre la base técnica de Smart Plant 3D (`..\digital-twins-3d\mr-twin`).
 
 ## Estado actual
-- Etapa en curso: **Etapa 6 — Escenario Espacios confinados**
+- Etapa en curso: **Etapa 7 — Evaluación, registros y certificado**
 - Versión: 0.1.0 · En producción: no
 - Funciona: portada → lobby (cédula, escenario, modo) → escenario demo (tableta, avisos, resaltado, flecha guía, paneles de objeto, consecuencia crítica) → debrief → lobby, en PC y en emulador VR; intentos guardados en IndexedDB
 - Bloqueos: ninguno
 
 ## Siguiente paso
-Ejecutar la **Etapa 6** (`world/confinados/`, `scenarios/confinados.js` según docs/05: foso, atmósfera con tiempo comprimido, detector con sonda por niveles, alarma, NPC vigía/supervisora, trípode; pruebas) y seguir con la 7.
+Ejecutar la **Etapa 7** (panel del instructor 2D: aprendices CSV, resultados, exportar/importar JSON y CSV, certificado imprimible, borrar datos de una persona; pruebas de registros; smoke del flujo completo) y seguir con la 8.
 
 ## Cómo probar
 ```
@@ -33,7 +33,7 @@ npm run dev:plain                            # desarrollo; OJO: el 5173 lo usa S
 | 3 Kit de interacción | ✅ | (mismo commit que la 2) | PC: Espacio abre documento, E agarra; demo 18 llamadas de dibujo |
 | 4 Escenario LOTO | ✅ | feat: escenario LOTO | 15 pruebas; completo en los 3 modos; 27 llamadas de dibujo |
 | 5 Escenario Alturas | ✅ | feat: escenario alturas | 12 pruebas; completo en los 3 modos; 13 llamadas de dibujo |
-| 6 Escenario Espacios confinados | ⏳ | | |
+| 6 Escenario Espacios confinados | ✅ | feat: escenario espacios confinados | 13 pruebas; completo en los 3 modos; 27 llamadas de dibujo |
 | 7 Evaluación, registros y certificado | ⏳ | | |
 | 8 Pulido, rendimiento, PWA y APK | ⏳ | | |
 | 9 Punto de revisión | ⏳ | | |
@@ -61,11 +61,19 @@ npm run dev:plain                            # desarrollo; OJO: el 5173 lo usa S
 - 2026-10-17 Motor: `requires` vale para cualquier kind (p. ej. la luminaria solo se alcanza a < 1,6 m; conectar exige llevar eslinga) y la interfaz muestra `requiresText`.
 - 2026-10-17 Alturas: el defecto del arnés se sortea en TODOS los modos (también en aprendizaje, para enseñar a inspeccionar). La caída de herramienta sobre el compañero es crítica solo si la semilla lo decide y no hay acordonamiento ni amarres.
 - 2026-10-17 Los entornos se liberan de la GPU al desmontarse (Scene › Stage › disposeTree).
+- 2026-10-17 Confinados: la alarma ocurre SIEMPRE (el paso «salir ante la alarma» vale 10 puntos); la semilla decide su retardo (2–6 s; 3 s en aprendizaje). Retirar equipos/cerrar el manhole exigen haber pasado la alarma para no cumplirse desde el inicio.
+- 2026-10-17 Motor: disparadores con `delayFrom` (retardo desde la variante) y `retry.set` (al reintentar tras «ignorar la alarma» el aprendiz queda afuera).
+- 2026-10-17 Las pruebas de humo esperan por TIEMPO DEL MOTOR (no por reloj): en Edge headless los cuadros son lentos y el motor avanza menos que el reloj real.
+- 2026-10-17 Fuga de GPU corregida: cada objeto construido con el colector se libera con `useDisposable` (al cambiar de versión o desmontarse). Antes crecía ~11 geometrías por ciclo lobby↔escenario; ahora es estable (`tests/leak.mjs`).
 
 ## Bloqueos
 - (ninguno)
 
 ## Bitácora
+### 2026-10-17 — Etapa 6 Escenario Espacios confinados
+- `scenarios/confinados.js` (8 fases, 20 pasos, 10 errores: 5 críticos), modelo de atmósfera por nivel con tiempo comprimido (ventilación) y fuga de H₂S en la alarma; vigía y supervisora con diálogos; requisitos físicos (llave de tapa, válvulas cerradas para la brida, trípode y arnés para la línea del winche). `world/confinados/ConfinadosWorld.jsx`: explanada, foso caminable de 3,5 m con escalera fija, línea con V-71/V-72 y brida ciega, ventilador con ducto, trípode, detector con pantalla, detector personal con alarma, NPCs.
+- Pruebas: `tests/scenarios/confinados.test.js` (13). Smoke: completo en los 3 modos, desvanecimiento al bajar sin medir. Total vitest: 78.
+
 ### 2026-10-17 — Etapa 5 Escenario Alturas
 - `scenarios/alturas.js` (7 fases, 19 pasos, 16 errores: 4 críticos — borde sin conexión, anclaje no certificado, arnés defectuoso, herramienta que cae), variantes (arnés defectuoso y su defecto, caída de herramienta). `world/alturas/AlturasWorld.jsx`: rack con plataforma a 6 m, tramo sin baranda con cinta, escalera con jaula (climb ligado al motor), anclaje certificado y distractores, luminaria, caseta de EPP, permisos, tablero de alumbrado, acordonamiento, compañero.
 - Pruebas: `tests/scenarios/alturas.test.js` (12). Smoke: completo en los 3 modos, caída + reintento en zona segura. Capturas `docs/capturas/alturas-*.png`.

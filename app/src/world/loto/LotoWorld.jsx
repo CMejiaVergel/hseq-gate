@@ -5,6 +5,7 @@ import { solidMaterial } from '../../geometry/materials.js'
 import { resetWalk, setStart, addRect, addSeg, addCircle } from '../../walk/walk.js'
 import { room, wall, ceilingLight } from '../common/room.js'
 import { signAtlas } from '../common/signs.js'
+import { useDisposable } from '../../geometry/dispose.js'
 import VRWorld from '../../scene/VRWorld.jsx'
 import { gateValveBody, mccCabinet, pushStation, gaugeFace, board, lockStation, person } from '../../interact/parts.js'
 import { Valve, Breaker, Item, LockPoint, Pick, PushButtons, Gauge, StateSwitch } from '../../interact/kit.jsx'
@@ -140,6 +141,7 @@ export default function LotoWorld({ scenario }) {
     return signAtlas(items, 320)
   }, [orden, slots])
 
+  useDisposable(group); useDisposable(signs)
   const slotOf = (id) => slots[orden.indexOf(id)]
   return (
     <>

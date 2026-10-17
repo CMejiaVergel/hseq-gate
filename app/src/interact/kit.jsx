@@ -5,6 +5,7 @@ import { pickBox } from '../scene/interact.js'
 import { useRunState, useSnap, getRun } from '../run/bridge.js'
 import { Collector } from '../geometry/builder.js'
 import { solidMaterial } from '../geometry/materials.js'
+import { useDisposable } from '../geometry/dispose.js'
 
 /*
  * Kit de objetos interactivos (docs/06).  Cada componente:
@@ -157,8 +158,9 @@ export function Item({ id, position, rotation, shape, box }) {
   const st = useRunState(id)
   const def = getRun()?.objects[id]
   const s = shape || def?.shape || 'caja'
-  const mesh = useMemo(() => itemShape(s, def?.color), [s, def?.color])
-  if (st !== 'sitio') return null
+  const mesh = useMemo(() => (st === 'sitio' ? itemShape(s, def?.color) : null), [s, def?.color, st === 'sitio'])  // eslint-disable-line react-hooks/exhaustive-deps
+  useDisposable(mesh)
+  if (!mesh) return null
   return (
     <group position={position} rotation={rotation}>
       <primitive object={mesh} />
@@ -186,6 +188,7 @@ export function LockPoint({ id, position, rotation, box = [0.14, 0.14, 0.1], dev
     }
     return g
   }, [st, run, device])
+  useDisposable(content)
   return (
     <group position={position} rotation={rotation}>
       {content && <primitive object={content} />}

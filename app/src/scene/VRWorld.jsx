@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import { useDisposable } from '../geometry/dispose.js'
 
 /*
  * Cielo y luz de exteriores (de Smart Plant 3D, sin la planta): cielo con sol y nubes que
@@ -57,6 +58,8 @@ export default function VRWorld({ sky = true, background = '#1a2130', fog = true
     return m
   }, [])
 
+  useEffect(() => () => { dome.geometry.dispose() }, [dome])
+  useDisposable(ground)
   useEffect(() => {
     const prevFog = scene.fog, prevFar = camera.far
     if (sky && fog) scene.fog = new THREE.Fog(HORIZON, 90, 420)

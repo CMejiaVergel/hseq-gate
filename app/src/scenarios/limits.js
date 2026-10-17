@@ -52,6 +52,8 @@ export const CONFINADOS = {
   segundosPorMinuto: 5,     // tiempo comprimido: 1 min simulado = 5 s reales    // dato del escenario
   minutosVentilacion: 4,    // minutos simulados de ventilación hasta aire limpio // dato del escenario
   salidaTrasAlarma: 5,      // s: seguir dentro más de esto tras la alarma = crítico // VALIDAR HSE
+  lecturaEstable: 2,        // s reales: esperar entre niveles para una lectura estable // dato del escenario
+  fugaH2S: { medio: 6, fondo: 18 },   // ppm durante el evento de alarma (válvula que pasa) // dato del escenario
   profundidad: 3.5,         // m                                                  // dato del escenario
   niveles: { arriba: 0.5, medio: 1.8, fondo: 3.2 },   // m bajo la tapa           // dato del escenario
   /* atmósfera inicial por nivel (antes de ventilar) */                          // dato del escenario

@@ -79,6 +79,7 @@ function handle(events) {
       }
       case 'trigger':
         if (e.trigger.message) app.showToast(e.trigger.message, 'mayor')
+        if (e.trigger.sound === 'alarma') S.alarm(5)
         break
       case 'finished':
         onFinished(e)

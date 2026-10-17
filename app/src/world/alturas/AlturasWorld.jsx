@@ -4,6 +4,7 @@ import { Collector } from '../../geometry/builder.js'
 import { solidMaterial, specialMaterial } from '../../geometry/materials.js'
 import { resetWalk, setStart, addFlat, addRect, addSeg, addCircle, addClimb } from '../../walk/walk.js'
 import { signAtlas } from '../common/signs.js'
+import { useDisposable } from '../../geometry/dispose.js'
 import VRWorld from '../../scene/VRWorld.jsx'
 import { board, person, cone } from '../../interact/parts.js'
 import { Breaker, Item, LockPoint, Pick, StateSwitch } from '../../interact/kit.jsx'
@@ -113,6 +114,7 @@ export default function AlturasWorld({ scenario }) {
     { text: 'Punto de anclaje 22,2 kN', kind: 'advertencia', title: '', w: 0.28, h: 0.1, pos: [-0.5, H + 1.78, -2.52] },
     { text: 'Acordonamiento', kind: 'advertencia', title: '', w: 0.5, h: 0.16, pos: [4.0, 1.1, 0.42] },
   ], 320), [])
+  useDisposable(group); useDisposable(signs)
 
   return (
     <>
@@ -161,6 +163,7 @@ function Cones({ placed }) {
     } else for (let i = 0; i < 4; i++) c.cone(0.14, 0.5, 'orange', { pos: [4.0, 0.27 + i * 0.08, 0.4], seg: 10 })
     return c.build('conos')
   }, [placed])
+  useDisposable(g)
   return <primitive object={g} />
 }
 

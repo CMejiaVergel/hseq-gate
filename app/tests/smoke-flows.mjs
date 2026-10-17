@@ -8,7 +8,7 @@ const DEMO_FELIZ = [
   ['detector', 'encender'], ['detector', 'medir', 'zona'], ['tapa', 'abrir'],
 ]
 
-import { LOTO, ALTURAS } from './scenario-scripts.mjs'
+import { LOTO, ALTURAS, CONFINADOS } from './scenario-scripts.mjs'
 
 export default async function flows({ page, ok, sleep, SHOTS }) {
   const ev = (fn, ...args) => page.evaluate(fn, ...args)
@@ -21,6 +21,8 @@ export default async function flows({ page, ok, sleep, SHOTS }) {
   const runScript = async (acts) => {
     for (const a of acts) {
       if (a.tp) { await tp(...a.tp); await sleep(450); continue }
+      if (a.waitT) { const t0 = await ev(() => window.__hseq.run().time); await page.waitForFunction((t) => window.__hseq.run().time >= t, { timeout: 120000, polling: 100 }, t0 + a.waitT); continue }
+      if (a.waitFlag) { await page.waitForFunction((f) => window.__hseq.snapshot()?.flags.includes(f), { timeout: 15000 }, a.waitFlag); await sleep(300); continue }
       const r = await ev((x) => window.__hseq.act(...x), a)
       if (!r?.ok) console.log('    (acción ignorada)', JSON.stringify(a), r?.reason)
     }
@@ -146,6 +148,36 @@ export default async function flows({ page, ok, sleep, SHOTS }) {
   await page.screenshot({ path: SHOTS + 'alturas-critico.png' })
   await ev(() => window.__hseq.bridge.retry()); await sleep(800)
   ok(await ev(() => window.__hseq.run().status === 'running' && Math.abs(window.__hseq.player.y - 6) < 0.1 && window.__hseq.player.z > -2), 'Alturas: reintento en zona segura de la plataforma')
+  await ev(() => window.__hseq.bridge.exitToLobby()); await sleep(400)
+
+  console.log('Escenario Espacios confinados')
+  for (const mode of ['aprendizaje', 'practica', 'evaluacion']) {
+    await ev((m) => window.__hseq.start('confinados-camara', { mode: m, seed: 31 }), mode)
+    await sleep(1500)
+    if (mode === 'aprendizaje') { await tp(0, 4.5, 0); await sleep(900); await page.screenshot({ path: SHOTS + 'confinados-inicio.png' }); await perf('Confinados (vista inicial)') }
+    const acts = CONFINADOS()
+    const iDentro = acts.findIndex((a) => a.tp && a.tp[3] === -3.5)
+    await runScript(acts.slice(0, iDentro + 1))
+    if (mode === 'aprendizaje') {
+      await page.screenshot({ path: SHOTS + 'confinados-foso.png' }); await perf('Confinados (dentro del foso)')
+      await tp(0.6, 1.6, 0.35); await sleep(800); await page.screenshot({ path: SHOTS + 'confinados-montaje.png' }); await tp(-0.6, -2.7, -1.27, -3.5); await sleep(400)
+    }
+    await runScript(acts.slice(iDentro + 1))
+    await sleep(900)
+    const r = await ev(() => window.__hseq.app.getState().lastResult)
+    ok(r && r.completed && r.score === 100 && (mode !== 'evaluacion' || r.passed), `Confinados completo en ${mode}: ${r?.score} ${JSON.stringify(r?.errors?.map((e) => e.id) || [])}`)
+    if (mode === 'evaluacion') await page.screenshot({ path: SHOTS + 'confinados-debrief.png' })
+    await ev(() => window.__hseq.bridge.exitToLobby()); await sleep(400)
+  }
+  /* consecuencia: bajar sin medir → desvanecimiento */
+  await ev(() => window.__hseq.start('confinados-camara', { mode: 'practica', seed: 31 }))
+  await sleep(1200)
+  await ev(() => window.__hseq.act('escalera-foso', 'bajar'))
+  await sleep(2000)
+  await page.screenshot({ path: SHOTS + 'confinados-desvanecimiento.png' })
+  await sleep(2500)
+  ok(await ev(() => window.__hseq.bridge.useRun.getState().consequence?.error.id === 'entrar-sin-medir'), 'Confinados: desvanecimiento al bajar sin medir')
+  await ev(() => window.__hseq.bridge.retry()); await sleep(300)
   await ev(() => window.__hseq.bridge.exitToLobby()); await sleep(400)
 
   /* consecuencia: purga con válvulas abiertas */

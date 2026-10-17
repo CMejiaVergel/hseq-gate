@@ -21,21 +21,13 @@ import { WORLDS } from './world/index.js'
 import { useRun, frameTick, getRun, spawnOf } from './run/bridge.js'
 import { SCENARIO_INDEX } from './scenarios/index.js'
 import { HIGHLIGHT_MAT } from './interact/kit.jsx'
+import { disposeTree } from './geometry/dispose.js'
 
 /*
  * Escena: el entorno de la pantalla actual (lobby o escenario) + el jugador (primera persona en
  * PC o plataforma VR) + la interfaz espacial (tableta, avisos, paneles, consecuencia, debrief).
  */
 
-/* libera en la GPU lo que el entorno construyó (las primitivas no las libera React); los
-   materiales compartidos del registro (fam:/sp:/so:) se conservan */
-function disposeTree(root) {
-  root.traverse((o) => {
-    if (o.geometry && !o.userData.keepGeometry) o.geometry.dispose()
-    const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : []
-    for (const m of mats) if (!/^(fam|sp|so):/.test(m.name || '')) { m.map?.dispose(); m.dispose() }
-  })
-}
 function Stage({ children }) {
   const ref = useRef()
   useEffect(() => { const g = ref.current; return () => { if (g) disposeTree(g) } }, [])

@@ -8,6 +8,7 @@ import { gateValveBody, board, lockStation } from '../../interact/parts.js'
 import { Valve, Breaker, Item, LockPoint, Pick, StateSwitch, Screen } from '../../interact/kit.jsx'
 import { useRunState } from '../../run/bridge.js'
 import { solidMaterial } from '../../geometry/materials.js'
+import { useDisposable } from '../../geometry/dispose.js'
 
 /*
  * Entorno del escenario de demostración: un cuarto de 8 × 8 m con un tablero de permisos, la
@@ -53,6 +54,7 @@ export default function DemoWorld({ scenario }) {
     ]))
     return g
   }, [scenario])
+  useDisposable(group)
 
   return (
     <>
