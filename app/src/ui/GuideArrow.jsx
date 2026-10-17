@@ -33,7 +33,7 @@ export default function GuideArrow() {
     g.visible = show
     if (!show) return
     _f.copy(HEAD.fwd); _f.y = 0; _f.normalize()
-    g.position.copy(HEAD.pos).addScaledVector(_f, 0.7); g.position.y -= 0.32
+    g.position.copy(HEAD.pos).addScaledVector(_f, 0.9); g.position.y -= 0.3
     g.quaternion.setFromRotationMatrix(_m.lookAt(HEAD.pos, g.position, _up))
     /* la flecha apunta en coordenadas de mundo: se compensa la rotación del grupo */
     _r.copy(pos).sub(g.position); _r.y *= 0.3; _r.normalize().applyQuaternion(g.quaternion.clone().invert())
@@ -43,7 +43,7 @@ export default function GuideArrow() {
   })
 
   return (
-    <group ref={ref} visible={false}>
+    <group ref={ref} visible={false} scale={0.6}>
       <group ref={arrow}>
         <mesh position={[0, 0.03, 0]} raycast={() => null} renderOrder={60}><coneGeometry args={[0.035, 0.08, 10]} /><meshBasicMaterial color="#3ddc84" depthTest={false} transparent /></mesh>
         <mesh position={[0, -0.03, 0]} raycast={() => null} renderOrder={60}><cylinderGeometry args={[0.012, 0.012, 0.07, 8]} /><meshBasicMaterial color="#3ddc84" depthTest={false} transparent /></mesh>

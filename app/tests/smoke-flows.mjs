@@ -8,8 +8,17 @@ const DEMO_FELIZ = [
   ['detector', 'encender'], ['detector', 'medir', 'zona'], ['tapa', 'abrir'],
 ]
 
+import { LOTO } from './scenario-scripts.mjs'
+
 export default async function flows({ page, ok, sleep, SHOTS }) {
   const ev = (fn, ...args) => page.evaluate(fn, ...args)
+  const perf = async (label) => {
+    await sleep(700)
+    const i = await ev(() => { const x = window.__r3f.gl.info; return { calls: x.render.calls, tris: x.render.triangles, geos: x.memory.geometries, tex: x.memory.textures } })
+    ok(i.calls <= 90 && i.tris <= 250000 && i.geos <= 300, `rendimiento ${label}: ${i.calls} llamadas, ${i.tris} triángulos, ${i.geos} geometrías, ${i.tex} texturas`)
+  }
+  const tp = (x, z, yaw, y = 0) => ev((t) => window.__hseq.app.getState().requestTeleport(t), { x, z, yaw, y })
+  const runScript = async (acts) => { for (const a of acts) { const r = await ev((x) => window.__hseq.act(...x), a); if (!r?.ok) console.log('    (acción ignorada)', a) } }
 
   console.log('Lobby y flujo de sesión (demo)')
   await ev(() => { const s = window.__hseq.app.getState(); s.setView('fp'); s.setScreen('lobby') })
@@ -73,4 +82,46 @@ export default async function flows({ page, ok, sleep, SHOTS }) {
   ok(n >= 2, `intentos guardados en IndexedDB: ${n}`)
   await ev(() => window.__hseq.bridge.exitToLobby())
   await sleep(400)
+
+  console.log('Escenario LOTO')
+  for (const mode of ['aprendizaje', 'practica', 'evaluacion']) {
+    await ev((m) => window.__hseq.start('loto-bomba', { mode: m, seed: 11 }), mode)
+    await sleep(1500)
+    const dead = await ev(() => window.__hseq.run().variant.probadorDescargado)
+    if (mode === 'aprendizaje') {
+      await ev(() => window.__hseq.app.getState().setTablet(true))
+      await tp(0, 3.6, 0); await sleep(900)
+      await page.screenshot({ path: SHOTS + 'loto-inicio.png' })
+      await perf('LOTO (vista inicial)')
+      await ev(() => window.__hseq.app.getState().setTablet(false))
+      await tp(9.5, -2.2, 0); await sleep(900)
+      await page.screenshot({ path: SHOTS + 'loto-ccm.png' })
+      await perf('LOTO (CCM)')
+      await tp(-5.6, 1.3, Math.PI / 2); await sleep(900)
+      await page.screenshot({ path: SHOTS + 'loto-estacion.png' })
+    }
+    const acts = LOTO(dead ? 'probador-2' : 'probador')
+    await runScript(acts.slice(0, 30))
+    if (mode === 'aprendizaje') { await tp(-1.9, 0.6, -0.5); await sleep(900); await page.screenshot({ path: SHOTS + 'loto-bloqueo.png' }) }
+    await runScript(acts.slice(30))
+    await sleep(900)
+    const r = await ev(() => window.__hseq.app.getState().lastResult)
+    ok(r && r.completed && r.score === 100 && (mode !== 'evaluacion' || r.passed), `LOTO completo en ${mode}: ${r?.score} ${r?.passed ? '(aprobado)' : ''}`)
+    if (mode === 'evaluacion') await page.screenshot({ path: SHOTS + 'loto-debrief.png' })
+    await ev(() => window.__hseq.bridge.exitToLobby()); await sleep(400)
+  }
+  /* consecuencia: purga con válvulas abiertas */
+  await ev(() => window.__hseq.start('loto-bomba', { mode: 'practica', seed: 2 }))
+  await sleep(1200)
+  await runScript(LOTO().slice(0, 18))
+  await tp(0.4, 0.6, 0.3); await sleep(500)
+  await ev(() => window.__hseq.act('v-purga', 'open'))
+  await sleep(900)
+  await page.screenshot({ path: SHOTS + 'loto-quemadura.png' })
+  await sleep(2500)
+  ok(await ev(() => window.__hseq.bridge.useRun.getState().consequence?.error.id === 'purga-con-valvulas-abiertas'), 'LOTO: consecuencia de la purga con válvulas abiertas')
+  await page.screenshot({ path: SHOTS + 'loto-critico.png' })
+  await ev(() => window.__hseq.bridge.retry()); await sleep(300)
+  ok(await ev(() => window.__hseq.run().status === 'running'), 'LOTO: reintentar desde el paso')
+  await ev(() => window.__hseq.bridge.exitToLobby()); await sleep(400)
 }

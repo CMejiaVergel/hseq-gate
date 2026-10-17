@@ -42,7 +42,7 @@ export function signTexture(text, { kind = 'rotulo', title, w = 0.6, h = 0.4, px
     ctx.fillText(tt, W / 2, bh / 2 + 2)
     y0 = bh
   }
-  const fs = size || Math.round(Math.min(H * 0.2, W * 0.09))
+  const fs = size || Math.round(tt ? Math.min(H * 0.2, W * 0.09) : Math.min(H * 0.34, W * 0.1))
   ctx.font = `800 ${fs}px ${FONT}`
   const L = lines(ctx, text, W * 0.88)
   ctx.fillStyle = K.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'

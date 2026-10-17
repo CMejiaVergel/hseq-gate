@@ -24,6 +24,18 @@ import { computeScore } from './scoring.js'
  */
 
 const ORDER_ERROR = 'fuera-de-orden'
+/* grupos de items que, puestos en un punto de bloqueo, impiden operar el equipo (def.lockedBy) */
+const LOCK_GROUPS = ['candado-personal', 'candado-prestado', 'candado-ajeno', 'cubre-volante']
+
+/** sustituye '$obj' y '$payload' en una condición por los de la acción que se evalúa */
+function bind(c, obj, payload) {
+  if (c == null || typeof c !== 'object') return c === '$obj' ? obj : c === '$payload' ? payload : c
+  if (Array.isArray(c)) return c.map((x) => bind(x, obj, payload))
+  const o = {}
+  for (const k of Object.keys(c)) o[k] = bind(c[k], obj, payload)
+  return o
+}
+const hasBinding = (c) => c != null && JSON.stringify(c).includes('"$')
 const clone = (v) => (v == null || typeof v !== 'object' ? v : JSON.parse(JSON.stringify(v)))
 
 /** ¿la acción coincide con el patrón [obj | [objs] | '*', verbo, carga?] ? */
@@ -106,12 +118,13 @@ export function createRun(scenario, { mode = 'aprendizaje', seed = 1 } = {}) {
     } else emit(evs, 'error', { error: rec })
     return severity === 'critico'
   }
-  function checkErrors(evs, match, after) {
+  function checkErrors(evs, match, after, act) {
     for (const err of scenario.errors || []) {
       if (status !== 'running') return true
       if (!!err.after !== after || fired.has(err.id)) continue
       if (!match(err.on)) continue
-      if (!cond(err.when ?? true)) continue
+      const w = err.when ?? true
+      if (!cond(act && hasBinding(w) ? bind(w, act.obj, act.payload) : w)) continue
       if (fireError(evs, err)) return true
     }
     return false
@@ -219,12 +232,14 @@ export function createRun(scenario, { mode = 'aprendizaje', seed = 1 } = {}) {
   function act(obj, verb, payload) {
     const evs = []
     if (status !== 'running') return { ok: false, events: evs, reason: status }
+    const def = objects[obj]
+    if (def?.lockedBy && (state[def.lockedBy] || []).some((it) => LOCK_GROUPS.includes(objects[it]?.group))) return { ok: false, events: evs, reason: 'bloqueado' }
     const draft = applyVerb(obj, verb, payload)
     if (!draft) return { ok: false, events: evs, reason: 'invalido' }
     actions.push(payload === undefined ? { t: +time.toFixed(2), obj, verb } : { t: +time.toFixed(2), obj, verb, payload })
     const match = (on) => on && on.act && matchAct(on.act, obj, verb, payload, objects)
     /* (2) errores previos a la acción: un crítico la cancela */
-    if (checkErrors(evs, match, false)) { emit(evs, 'state', {}); return { ok: true, cancelled: true, events: evs } }
+    if (checkErrors(evs, match, false, { obj, payload })) { emit(evs, 'state', {}); return { ok: true, cancelled: true, events: evs } }
     /* (3) aplicar */
     Object.assign(state, draft.state); inventory = draft.inventory; hand = draft.hand
     computeReadings()
@@ -235,7 +250,7 @@ export function createRun(scenario, { mode = 'aprendizaje', seed = 1 } = {}) {
       if (ef.unflag) flags.delete(ef.unflag)
       computeReadings()
     }
-    if (checkErrors(evs, match, true)) { emit(evs, 'state', {}); return { ok: true, events: evs } }
+    if (checkErrors(evs, match, true, { obj, payload })) { emit(evs, 'state', {}); return { ok: true, events: evs } }
     /* (4) pasos */
     evalSteps(evs, { obj, verb, payload })
     emit(evs, 'state', {})

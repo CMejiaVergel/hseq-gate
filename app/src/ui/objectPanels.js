@@ -17,17 +17,16 @@ export function objectPanel(id, run, snap) {
   const A = {}
   const btn = (key, label, act, extra = {}) => { A[key] = act; return { id: key, label, ...extra } }
   const label = (oid) => run.objects[oid]?.label ?? oid
-  const learning = snap.mode === 'aprendizaje'
 
   switch (def.kind) {
     case 'document': {
       if (def.fields) W.push({ type: 'kv', rows: def.fields.map(([k, v]) => ({ k, v })) })
       if (def.text) W.push({ type: 'text', text: def.text, small: true })
-      const stTxt = { pendiente: 'Pendiente de firma', leido: 'Leído · pendiente de firma', firmado: 'Firmado', cerrado: 'Cerrado' }[st] || st
+      const stTxt = def.readOnly ? 'Leído' : ({ pendiente: 'Pendiente de firma', leido: 'Leído · pendiente de firma', firmado: 'Firmado', cerrado: 'Cerrado' }[st] || st)
       W.push({ type: 'kv', rows: [{ k: 'Estado', v: stTxt, color: st === 'firmado' ? C.ok : st === 'cerrado' ? C.mute : C.warn }] })
       const items = []
-      if (st === 'pendiente' || st === 'leido') items.push(btn('firmar', def.signLabel || 'Firmar', [id, 'firmar'], { color: C.ok, active: true }))
-      if (st === 'firmado' && def.closable !== false) items.push(btn('cerrar-doc', def.closeLabel || 'Cerrar el permiso', [id, 'cerrar']))
+      if (!def.readOnly && (st === 'pendiente' || st === 'leido')) items.push(btn('firmar', def.signLabel || 'Firmar', [id, 'firmar'], { color: C.ok, active: true }))
+      if (!def.readOnly && st === 'firmado' && def.closable !== false) items.push(btn('cerrar-doc', def.closeLabel || 'Cerrar el permiso', [id, 'cerrar']))
       if (items.length) W.push({ type: 'buttons', items, cols: items.length })
       break
     }
@@ -36,7 +35,7 @@ export function objectPanel(id, run, snap) {
       const last = st?.[st.length - 1]
       const lastOpt = def.options.find((o) => o.id === last)
       if (lastOpt?.reply) W.push({ type: 'banner', text: '« ' + lastOpt.reply + ' »', color: '#24476e' })
-      W.push({ type: 'buttons', cols: 1, h: 64, font: 20, items: def.options.map((o) => btn('o:' + o.id, o.label, [id, def.kind === 'radio' ? 'llamar' : 'hablar', o.id], { active: st?.includes(o.id) && !learning ? false : st?.includes(o.id) })) })
+      W.push({ type: 'buttons', cols: 1, h: 64, font: 20, items: def.options.map((o) => btn('o:' + o.id, o.label, [id, def.kind === 'radio' ? 'llamar' : 'hablar', o.id], { active: st?.includes(o.id) })) })
       break
     }
     case 'checklist': {

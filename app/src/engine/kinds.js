@@ -160,7 +160,8 @@ export const KINDS = {
     initial: () => null,
     verbs: { responder: (w) => (w.def.options?.some((o) => o.id === w.payload) ? same(w, w.payload) : INVALID) },
   },
-  /* equipo con verbos propios: def.verbs = { desmontar: 'desmontado', montar: 'montado' } */
+  /* equipo con verbos propios: def.verbs = { desmontar: 'desmontado', montar: 'montado' };
+     def.from = { verbo: [estados desde los que vale] }; def.requires = { verbo: condición } */
   task: {
     initial: (def) => def.initial ?? null,
     verbs: new Proxy({}, {
@@ -168,6 +169,7 @@ export const KINDS = {
         const to = w.def.verbs?.[verb]
         if (to === undefined) return INVALID
         if (w.def.from?.[verb] && !w.def.from[verb].includes(w.get())) return INVALID
+        if (w.def.requires?.[verb] && !w.cond(w.def.requires[verb])) return INVALID
         return same(w, to)
       },
       has: () => true,

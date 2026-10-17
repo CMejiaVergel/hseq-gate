@@ -61,10 +61,13 @@ function handle(events) {
       case 'step':
         if (mode !== 'evaluacion') { app.showToast('✔ ' + e.step.title, 'ok'); S.okSound() } else S.click()
         break
-      case 'error':
+      case 'error': {
+        const def = (RUN.scenario.errors || []).find((x) => x.id === e.error.id)
+        if (def?.effect) playConsequence(def.effect)
         if (mode === 'aprendizaje') { app.showToast(`⚠ ${e.error.message}${e.error.explain ? '\n' + e.error.explain : ''}`, e.error.severity); S.warnSound() }
         else if (mode === 'practica') { app.showToast('⚠ ' + e.error.message, e.error.severity); S.warnSound() }
         break
+      }
       case 'critical': {
         const dur = playConsequence(e.consequence)
         const scen = RUN.scenario
@@ -129,6 +132,7 @@ export function act(obj, verb, payload) {
   if (!RUN) return { ok: false, events: [] }
   const r = RUN.act(obj, verb, payload)
   if (r.ok) { handle(r.events); publish() }
+  else if (r.reason === 'bloqueado') { useApp.getState().showToast('🔒 Bloqueado: tiene candado puesto', 'info'); S.beep(220, 0.1, 0.2) }
   return r
 }
 

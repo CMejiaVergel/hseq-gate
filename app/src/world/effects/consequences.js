@@ -40,6 +40,9 @@ export function playConsequence(name) {
     case 'arco-electrico':
       S.spark(); FX.color.set('#bcd8ff'); FX.flash = 1; haptic('right', 1, 200)
       return 1.5
+    case 'arranque-motor':
+      S.motorStart(2.5); haptic('right', 0.6, 200)
+      return 1
     case 'objeto-cae':
       setTimeout(() => S.thud(0.7), 600); FX.color.set('#ff2a1a'); setTimeout(() => { FX.flash = 0.8 }, 600)
       return 2

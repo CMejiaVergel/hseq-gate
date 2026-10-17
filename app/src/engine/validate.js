@@ -28,6 +28,7 @@ export function validate(sc) {
     if (['radio', 'person', 'quiz'].includes(def.kind) && !def.options?.length) err(`Objeto ${id}: faltan options`)
     if (def.kind === 'checklist' && !def.items?.length) err(`Objeto ${id}: faltan items`)
     if (def.kind === 'lockpoint') for (const it of def.preset || []) if (!objects[it]) err(`Objeto ${id}: preset «${it}» inexistente`)
+    if (def.lockedBy && objects[def.lockedBy]?.kind !== 'lockpoint') err(`Objeto ${id}: lockedBy «${def.lockedBy}» no es un punto de bloqueo`)
   }
 
   const stepIds = new Set(), phaseIds = new Set(), errorIds = new Set()
@@ -63,7 +64,7 @@ export function validate(sc) {
     const v = leaf[k]
     if (k === 'state' || k === 'count' || k === 'elapsed' || k === 'sequence') {
       const id = String(v[0]).split('.')[0]
-      if (!objects[id]) err(`${where}: objeto «${id}» inexistente`)
+      if (!objects[id] && id !== '$obj') err(`${where}: objeto «${id}» inexistente`)
       if ((k === 'state' && v.length === 3) || k === 'count' || k === 'elapsed') if (!isOp(v[1])) err(`${where}: operador «${v[1]}» desconocido`)
     }
     if (k === 'reading' && !(v[0] in (sc.readings || {}))) err(`${where}: lectura «${v[0]}» inexistente`)
