@@ -1,0 +1,31 @@
+﻿
+# --- Agregado en la migracion a VOLTAC_DEV (no subir secretos ni datos reales) ---
+node_modules/
+.next/
+.env
+.env.*
+!.env.example
+!.env.*.example
+.data/
+.datos/
+.sessions/
+.tokens/
+*.db
+*.db-shm
+*.db-wal
+*.pem
+
+# APK de Quest (bubblewrap): la llave de firma NUNCA va al repo
+*.keystore
+*.jks
+quest-apk/app/build/
+quest-apk/.gradle/
+quest-apk/*.apk
+quest-apk/*.aab
+quest-apk/*.idsig
+quest-apk/build/
+
+# --- HSEQ Gate ---
+*.apk
+tests/.out/
+app/tests/.out/

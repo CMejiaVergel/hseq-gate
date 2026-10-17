@@ -1,0 +1,66 @@
+:root {
+  --bg: #0b1220;
+  --ink: #e8eef8;
+  --mute: #9fb0c8;
+  --accent: #3a7bff;
+  --accent-2: #ff7a3d;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+}
+/* el canvas ocupa toda la ventana; en AR se vuelve transparente sobre el passthrough */
+canvas { display: block; }
+
+.overlay {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: max(18px, env(safe-area-inset-top)) 22px max(18px, env(safe-area-inset-bottom));
+  pointer-events: none;            /* deja pasar el ratón al canvas */
+  background: linear-gradient(180deg, rgba(11,18,32,.85) 0%, rgba(11,18,32,0) 30%, rgba(11,18,32,0) 70%, rgba(11,18,32,.85) 100%);
+}
+.overlay > * { pointer-events: auto; }
+
+header { display: flex; align-items: baseline; gap: 14px; }
+.brand { font-weight: 800; letter-spacing: .14em; font-size: 14px; color: #fff; }
+.sub { color: var(--mute); font-size: 13px; }
+
+main {
+  align-self: flex-start;
+  max-width: 420px;
+  background: rgba(8, 14, 26, .72);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(120,170,255,.25);
+  border-radius: 16px;
+  padding: 20px 22px;
+}
+main h1 { margin: 0 0 6px; font-size: 34px; letter-spacing: .02em; }
+main p { margin: 0 0 16px; color: var(--mute); line-height: 1.45; font-size: 15px; }
+.hint { font-size: 13px; margin-top: 12px; margin-bottom: 0; }
+
+.enter {
+  width: 100%;
+  border: 0; border-radius: 12px;
+  padding: 16px 20px;
+  font: inherit; font-weight: 700; font-size: 17px;
+  color: #fff; background: var(--accent);
+  cursor: pointer;
+  transition: transform .08s ease, background .2s;
+}
+.enter:hover:not(:disabled) { background: #2f6ae6; transform: translateY(-1px); }
+.enter:disabled { background: #2a3448; color: #8c9ab3; cursor: not-allowed; }
+
+.enter + .enter { margin-top: 10px; }
+.enter.alt { background: #24334d; }
+.enter.alt:hover:not(:disabled) { background: #2f4160; }
+.crosshair { position: fixed; left: 50%; top: 50%; width: 18px; height: 18px; transform: translate(-50%, -50%); pointer-events: none; z-index: 5; }
+.crosshair::before, .crosshair::after { content: ''; position: absolute; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.55); }
+.crosshair::before { left: 8px; top: 2px; width: 2px; height: 14px; }
+.crosshair::after { top: 8px; left: 2px; height: 2px; width: 14px; }
+.crosshair.on::before, .crosshair.on::after { background: #3ddc84; }

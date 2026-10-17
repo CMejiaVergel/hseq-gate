@@ -1,0 +1,32 @@
+{
+  "name": "hseq-gate",
+  "private": true,
+  "version": "0.1.0",
+  "description": "HSEQ Gate · Simulador de entrenamiento HSEQ en realidad virtual para Meta Quest 3S (Voltac Systems)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "dev:plain": "vite --mode plain --port 5173 --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "test": "vitest run",
+    "smoke": "node tests/smoke.mjs"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
+    "@react-three/xr": "^6.6.30",
+    "react": "~19.2.0",
+    "react-dom": "~19.2.0",
+    "three": "^0.186.0",
+    "three-mesh-bvh": "^0.8.3",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "puppeteer-core": "^24.20.0",
+    "vite": "^8.3.0",
+    "vitest": "^4.0.0"
+  }
+}
