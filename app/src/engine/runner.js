@@ -234,6 +234,7 @@ export function createRun(scenario, { mode = 'aprendizaje', seed = 1 } = {}) {
     if (status !== 'running') return { ok: false, events: evs, reason: status }
     const def = objects[obj]
     if (def?.lockedBy && (state[def.lockedBy] || []).some((it) => LOCK_GROUPS.includes(objects[it]?.group))) return { ok: false, events: evs, reason: 'bloqueado' }
+    if (def?.requires?.[verb] && !cond(def.requires[verb])) return { ok: false, events: evs, reason: 'requisito', need: def.requiresText?.[verb] || null }
     const draft = applyVerb(obj, verb, payload)
     if (!draft) return { ok: false, events: evs, reason: 'invalido' }
     actions.push(payload === undefined ? { t: +time.toFixed(2), obj, verb } : { t: +time.toFixed(2), obj, verb, payload })

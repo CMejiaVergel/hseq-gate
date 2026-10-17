@@ -27,11 +27,26 @@ import { HIGHLIGHT_MAT } from './interact/kit.jsx'
  * PC o plataforma VR) + la interfaz espacial (tableta, avisos, paneles, consecuencia, debrief).
  */
 
+/* libera en la GPU lo que el entorno construyó (las primitivas no las libera React); los
+   materiales compartidos del registro (fam:/sp:/so:) se conservan */
+function disposeTree(root) {
+  root.traverse((o) => {
+    if (o.geometry && !o.userData.keepGeometry) o.geometry.dispose()
+    const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : []
+    for (const m of mats) if (!/^(fam|sp|so):/.test(m.name || '')) { m.map?.dispose(); m.dispose() }
+  })
+}
+function Stage({ children }) {
+  const ref = useRef()
+  useEffect(() => { const g = ref.current; return () => { if (g) disposeTree(g) } }, [])
+  return <group ref={ref}>{children}</group>
+}
+
 /* entorno del escenario: se monta de nuevo en cada intento (runId) y lleva al jugador a su punto de aparición */
 function ScenarioStage({ scenario }) {
   const World = WORLDS[scenario.world]
   useEffect(() => { useApp.getState().requestTeleport(spawnOf(scenario)) }, [scenario])
-  return World ? <World scenario={scenario} /> : null
+  return World ? <Stage><World scenario={scenario} /></Stage> : null
 }
 
 export default function Scene() {
@@ -80,7 +95,7 @@ export default function Scene() {
       <XROrigin ref={originRef}>{inSession && <VRHands />}</XROrigin>
       <ambientLight intensity={0.25} />
       <group ref={(g) => { worldRef.current = g; WORLD.root = g }} onClick={onClick} onPointerOver={onOver} onPointerOut={onOut}>
-        {inScenario ? <ScenarioStage key={runId} scenario={scenario} /> : <LobbyWorld />}
+        {inScenario ? <ScenarioStage key={runId} scenario={scenario} /> : <Stage><LobbyWorld /></Stage>}
       </group>
       {view === 'fp' && !inSession && <FirstPerson />}
       {inSession && <VRRig originRef={originRef} />}

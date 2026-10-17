@@ -132,6 +132,7 @@ export function act(obj, verb, payload) {
   if (!RUN) return { ok: false, events: [] }
   const r = RUN.act(obj, verb, payload)
   if (r.ok) { handle(r.events); publish() }
+  else if (r.reason === 'requisito' && r.need) { useApp.getState().showToast(r.need, 'info'); S.beep(220, 0.1, 0.2) }
   else if (r.reason === 'bloqueado') { useApp.getState().showToast('🔒 Bloqueado: tiene candado puesto', 'info'); S.beep(220, 0.1, 0.2) }
   return r
 }

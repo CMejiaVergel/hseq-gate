@@ -8,13 +8,13 @@ Simulador VR de entrenamiento HSEQ (LOTO, alturas, espacios confinados) para Met
 sobre la base técnica de Smart Plant 3D (`..\digital-twins-3d\mr-twin`).
 
 ## Estado actual
-- Etapa en curso: **Etapa 5 — Escenario Alturas**
+- Etapa en curso: **Etapa 6 — Escenario Espacios confinados**
 - Versión: 0.1.0 · En producción: no
 - Funciona: portada → lobby (cédula, escenario, modo) → escenario demo (tableta, avisos, resaltado, flecha guía, paneles de objeto, consecuencia crítica) → debrief → lobby, en PC y en emulador VR; intentos guardados en IndexedDB
 - Bloqueos: ninguno
 
 ## Siguiente paso
-Ejecutar la **Etapa 5** (entorno `world/alturas/`, `scenarios/alturas.js` según docs/04: zona de borde con near, quiz de claridad de caída, efecto de caída confortable, pruebas) y seguir con la 6.
+Ejecutar la **Etapa 6** (`world/confinados/`, `scenarios/confinados.js` según docs/05: foso, atmósfera con tiempo comprimido, detector con sonda por niveles, alarma, NPC vigía/supervisora, trípode; pruebas) y seguir con la 7.
 
 ## Cómo probar
 ```
@@ -32,7 +32,7 @@ npm run dev:plain                            # desarrollo; OJO: el 5173 lo usa S
 | 2 Lobby y flujo de sesión | ✅ | feat: lobby, tableta, flujo de sesión y kit de interacción | smoke recorre lobby→demo→debrief y crítico en evaluación |
 | 3 Kit de interacción | ✅ | (mismo commit que la 2) | PC: Espacio abre documento, E agarra; demo 18 llamadas de dibujo |
 | 4 Escenario LOTO | ✅ | feat: escenario LOTO | 15 pruebas; completo en los 3 modos; 27 llamadas de dibujo |
-| 5 Escenario Alturas | ⏳ | | |
+| 5 Escenario Alturas | ✅ | feat: escenario alturas | 12 pruebas; completo en los 3 modos; 13 llamadas de dibujo |
 | 6 Escenario Espacios confinados | ⏳ | | |
 | 7 Evaluación, registros y certificado | ⏳ | | |
 | 8 Pulido, rendimiento, PWA y APK | ⏳ | | |
@@ -57,11 +57,19 @@ npm run dev:plain                            # desarrollo; OJO: el 5173 lo usa S
 - 2026-10-17 LOTO: los puntos de docs/03 sumaban 107; se ajustó a 100 restando en pasos de bajo riesgo (leer OT 2→1, tomar equipo 3→2, matriz 10→8, reinstalar guarda/avisar energizar/cerrar permiso 2→1). Los pasos críticos conservan su peso.
 - 2026-10-17 Motor: `lockedBy` (un equipo con candado o cubre-volante puesto no se puede operar), `requires` en `task` y `$obj` en las condiciones de errores — realismo del bloqueo y reglas por punto sin duplicar datos.
 - 2026-10-17 LOTO: «equipo equivocado» se detecta al intentar arrancar con otro interruptor abierto (error mayor + arranque del motor); bloquear otro interruptor es «punto-equivocado» (mayor). Retirar la guarda antes de verificar también es «trabajo-sin-verificar».
+- 2026-10-17 Alturas: la tabla de docs/04 sumaba 90; se llevó a 100 sumando en lo crítico (inspección del arnés 10→12, conexión al anclaje 10→12, ATS 6→7, claridad 6→7, bajar y cerrar 6→8, rescate 5→7).
+- 2026-10-17 Motor: `requires` vale para cualquier kind (p. ej. la luminaria solo se alcanza a < 1,6 m; conectar exige llevar eslinga) y la interfaz muestra `requiresText`.
+- 2026-10-17 Alturas: el defecto del arnés se sortea en TODOS los modos (también en aprendizaje, para enseñar a inspeccionar). La caída de herramienta sobre el compañero es crítica solo si la semilla lo decide y no hay acordonamiento ni amarres.
+- 2026-10-17 Los entornos se liberan de la GPU al desmontarse (Scene › Stage › disposeTree).
 
 ## Bloqueos
 - (ninguno)
 
 ## Bitácora
+### 2026-10-17 — Etapa 5 Escenario Alturas
+- `scenarios/alturas.js` (7 fases, 19 pasos, 16 errores: 4 críticos — borde sin conexión, anclaje no certificado, arnés defectuoso, herramienta que cae), variantes (arnés defectuoso y su defecto, caída de herramienta). `world/alturas/AlturasWorld.jsx`: rack con plataforma a 6 m, tramo sin baranda con cinta, escalera con jaula (climb ligado al motor), anclaje certificado y distractores, luminaria, caseta de EPP, permisos, tablero de alumbrado, acordonamiento, compañero.
+- Pruebas: `tests/scenarios/alturas.test.js` (12). Smoke: completo en los 3 modos, caída + reintento en zona segura. Capturas `docs/capturas/alturas-*.png`.
+
 ### 2026-10-17 — Etapa 4 Escenario LOTO
 - `scenarios/loto.js` (8 fases, 23 pasos, 13 errores: 4 críticos), variantes por semilla (orden del CCM barajado, probador descargado con repuesto). `world/loto/LotoWorld.jsx`: casa de bombas, bomba/motor/acople, succión, descarga con cheque, purga con balde, manómetro, botonera, carro con probadores, estación de bloqueo, tablero de permisos, operadora, cuarto eléctrico con CCM-03 y caja grupal (candado del electricista). Partículas de chorro (`world/effects/Spray`).
 - Pruebas: `tests/scenarios/loto.test.js` (15). Smoke: LOTO completo en los 3 modos, crítico de la purga + reintento, rendimiento (27 llamadas). Capturas `docs/capturas/loto-*.png`.

@@ -16,3 +16,22 @@ export const LOTO = (tester = 'probador') => [
   ['punto-descarga', 'quitar', 'candado-3'], ['punto-descarga', 'quitar', 'cubre-2'],
   ['v-purga', 'close'], ['v-succion', 'open'], ['v-descarga', 'open'], ['ccm-p101', 'on'], ['permiso', 'cerrar'],
 ]
+
+/* Alturas: { tp: [x, z, yaw, y] } mueve al jugador (el motor lee su posición en cada tick) */
+const PTS = ['correas', 'costuras', 'argollas', 'hebillas', 'etiqueta']
+export const ALTURAS = (h) => [
+  ['ats', 'marcar', 'caida-persona'], ['ats', 'marcar', 'caida-objetos'], ['ats', 'marcar', 'electrico'],
+  ['permiso-alturas', 'leer'], ['permiso-alturas', 'firmar'],
+  ['candado-alturas', 'tomar'], ['int-alumbrado', 'off'], ['punto-alumbrado', 'poner', 'candado-alturas'],
+  ['barrera', 'colocar'],
+  ...PTS.map((p) => [h, 'inspeccionar', p]), [h, 'poner'], [h, 'ajustar'],
+  ['casco-ok', 'tomar'], ['eslinga-abs', 'tomar'], ['bolso', 'tomar'], ['amarres', 'tomar'],
+  ['quiz-claridad', 'responder', 'apto'], ['jugador', 'mano', null],
+  ['escalera', 'subir'], { tp: [-1.6, -1.6, 0, 6] },
+  ['anclaje-cert', 'conectar'],
+  { tp: [1.5, -3.6, 0, 6] }, ['luminaria', 'desmontar'], ['luminaria', 'instalar'],
+  { tp: [-1.6, -1.6, Math.PI, 6] }, ['anclaje-cert', 'desconectar'],
+  ['escalera', 'bajar'], { tp: [-2.5, -0.3, Math.PI, 0] },
+  ['barrera', 'retirar'], ['punto-alumbrado', 'quitar', 'candado-alturas'], ['int-alumbrado', 'on'], ['permiso-alturas', 'cerrar'],
+  ['quiz-rescate', 'responder', 'activar-rescate'],
+]

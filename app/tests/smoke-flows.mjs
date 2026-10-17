@@ -8,7 +8,7 @@ const DEMO_FELIZ = [
   ['detector', 'encender'], ['detector', 'medir', 'zona'], ['tapa', 'abrir'],
 ]
 
-import { LOTO } from './scenario-scripts.mjs'
+import { LOTO, ALTURAS } from './scenario-scripts.mjs'
 
 export default async function flows({ page, ok, sleep, SHOTS }) {
   const ev = (fn, ...args) => page.evaluate(fn, ...args)
@@ -18,7 +18,13 @@ export default async function flows({ page, ok, sleep, SHOTS }) {
     ok(i.calls <= 90 && i.tris <= 250000 && i.geos <= 300, `rendimiento ${label}: ${i.calls} llamadas, ${i.tris} triángulos, ${i.geos} geometrías, ${i.tex} texturas`)
   }
   const tp = (x, z, yaw, y = 0) => ev((t) => window.__hseq.app.getState().requestTeleport(t), { x, z, yaw, y })
-  const runScript = async (acts) => { for (const a of acts) { const r = await ev((x) => window.__hseq.act(...x), a); if (!r?.ok) console.log('    (acción ignorada)', a) } }
+  const runScript = async (acts) => {
+    for (const a of acts) {
+      if (a.tp) { await tp(...a.tp); await sleep(450); continue }
+      const r = await ev((x) => window.__hseq.act(...x), a)
+      if (!r?.ok) console.log('    (acción ignorada)', JSON.stringify(a), r?.reason)
+    }
+  }
 
   console.log('Lobby y flujo de sesión (demo)')
   await ev(() => { const s = window.__hseq.app.getState(); s.setView('fp'); s.setScreen('lobby') })
@@ -110,6 +116,38 @@ export default async function flows({ page, ok, sleep, SHOTS }) {
     if (mode === 'evaluacion') await page.screenshot({ path: SHOTS + 'loto-debrief.png' })
     await ev(() => window.__hseq.bridge.exitToLobby()); await sleep(400)
   }
+  console.log('Escenario Alturas')
+  for (const mode of ['aprendizaje', 'practica', 'evaluacion']) {
+    await ev((m) => window.__hseq.start('alturas-luminaria', { mode: m, seed: 21 }), mode)
+    await sleep(1500)
+    const h = await ev(() => ['arnes-1', 'arnes-2', 'arnes-3'].find((x) => x !== window.__hseq.run().variant.arnesDefectuoso))
+    if (mode === 'aprendizaje') {
+      await tp(0, 6, 0); await sleep(900); await page.screenshot({ path: SHOTS + 'alturas-inicio.png' }); await perf('Alturas (vista inicial)')
+      await tp(-4.6, 1.2, Math.PI / 2); await sleep(900); await page.screenshot({ path: SHOTS + 'alturas-caseta.png' })
+    }
+    const acts = ALTURAS(h)
+    const iBorde = acts.findIndex((a) => a.tp && a.tp[0] === 1.5)
+    await runScript(acts.slice(0, iBorde + 1))
+    if (mode === 'aprendizaje') { await tp(-1.0, -1.6, -0.69, 6); await sleep(900); await page.screenshot({ path: SHOTS + 'alturas-plataforma.png' }); await perf('Alturas (plataforma)'); await tp(1.5, -3.6, 0, 6); await sleep(450) }
+    await runScript(acts.slice(iBorde + 1))
+    await sleep(900)
+    const r = await ev(() => window.__hseq.app.getState().lastResult)
+    ok(r && r.completed && r.score === 100 && (mode !== 'evaluacion' || r.passed), `Alturas completo en ${mode}: ${r?.score}`)
+    await ev(() => window.__hseq.bridge.exitToLobby()); await sleep(400)
+  }
+  /* consecuencia: borde sin conexión → caída */
+  await ev(() => window.__hseq.start('alturas-luminaria', { mode: 'practica', seed: 21 }))
+  await sleep(1200)
+  await tp(-1.6, -1.6, 0, 6); await sleep(500)
+  await tp(1.5, -3.6, 0, 6); await sleep(1200)
+  await page.screenshot({ path: SHOTS + 'alturas-caida.png' })
+  await sleep(2500)
+  ok(await ev(() => window.__hseq.bridge.useRun.getState().consequence?.error.id === 'borde-sin-conexion'), 'Alturas: caída al entrar al borde sin conexión')
+  await page.screenshot({ path: SHOTS + 'alturas-critico.png' })
+  await ev(() => window.__hseq.bridge.retry()); await sleep(800)
+  ok(await ev(() => window.__hseq.run().status === 'running' && Math.abs(window.__hseq.player.y - 6) < 0.1 && window.__hseq.player.z > -2), 'Alturas: reintento en zona segura de la plataforma')
+  await ev(() => window.__hseq.bridge.exitToLobby()); await sleep(400)
+
   /* consecuencia: purga con válvulas abiertas */
   await ev(() => window.__hseq.start('loto-bomba', { mode: 'practica', seed: 2 }))
   await sleep(1200)
