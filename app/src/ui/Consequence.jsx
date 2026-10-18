@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
 import Panel3D, { C } from './Panel3D.jsx'
 import { useRun, getRun, retry, toDebrief } from '../run/bridge.js'
-import { placeInFront } from './place.js'
+import { placeInFront, useKeepInView } from './place.js'
 
 /*
  * Panel de consecuencia crítica (docs/06): tras el efecto, qué pasó, por qué y qué debiste hacer;
@@ -32,6 +32,7 @@ export default function Consequence() {
     if (visible && ref.current) { const vr = gl.xr.isPresenting; placeInFront(ref.current, vr ? 0.8 : 0.85, vr ? -0.1 : -0.05) }
   }, [visible, gl])
 
+  useKeepInView(ref, gl.xr.isPresenting ? 0.8 : 0.85, -0.08)
   if (!visible) return null
   const onAction = (id) => { if (id === 'reintentar') retry(); else if (id === 'resultado') toDebrief() }
   return <Panel3D ref={ref} widgets={widgets} width={0.55} onAction={onAction} />

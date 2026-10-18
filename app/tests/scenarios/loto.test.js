@@ -126,6 +126,12 @@ describe('escenario LOTO — bomba P-101', () => {
     expect(result.errors.map((e) => e.id)).toContain('equipo-equivocado')
   })
 
+  it('quitar un candado mal puesto o reabrir una válvula no genera «fuera de orden» en los pasos de restauración', () => {
+    const { result } = play(loto, [...PREPARAR, ['punto-p102', 'poner', 'candado-1'], ['punto-p102', 'quitar', 'candado-1'], ['v-succion', 'close'], ['v-succion', 'open']], { mode: 'practica', seed: SEED_OK })
+    const orden = result.errors.filter((e) => e.id === 'fuera-de-orden').map((e) => e.message)
+    expect(orden.some((m) => /Retirar SOLO|Cerrar la purga/.test(m))).toBe(false)
+  })
+
   it('un equipo bloqueado no se puede operar hasta retirar el candado', () => {
     const run = createRun(loto, { mode: 'evaluacion', seed: SEED_OK })
     for (const a of [...PREPARAR, ...AISLAR, ...BLOQUEAR]) run.act(...a)

@@ -117,6 +117,10 @@ npm run dev:plain -- --port 5174             # desarrollo (el 5173 lo usa Smart 
 - (ninguno)
 
 ## Bitácora
+### 2026-10-17 — Ajustes tras la primera prueba en el visor
+- Debrief: los botones Repetir / Volver al lobby quedaban recortados (el panel superaba el alto del lienzo con muchos errores). Ahora van arriba; errores agrupados (los «fuera de orden» en una línea, máx. 4, explicación solo en críticos). Debrief y consecuencia vuelven frente a la vista si el aprendiz se gira o se aleja (`useKeepInView`).
+- Motor: los pasos que ya se cumplen al inicio (restaurar) ya no generan «fuera de orden» al deshacer algo (p. ej. quitar un candado mal puesto). Prueba de regresión en loto.test.js (87 pruebas).
+
 ### 2026-10-17 — Repo remoto y servidor local
 - Remoto `origin` = github.com/CMejiaVergel/hseq-gate; `main` subido. Scripts `dev:plain` (http :5174) y `dev:quest` (https :5175, red local) + `.claude/launch.json`. Decisión del dueño: probar y ajustar en la web antes de desplegar y de crear el APK.
 

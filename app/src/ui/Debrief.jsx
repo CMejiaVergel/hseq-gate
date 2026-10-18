@@ -3,7 +3,7 @@ import { useThree } from '@react-three/fiber'
 import Panel3D, { C } from './Panel3D.jsx'
 import { useApp, MODES } from '../store.js'
 import { startScenario, exitToLobby } from '../run/bridge.js'
-import { placeInFront } from './place.js'
+import { placeInFront, useKeepInView } from './place.js'
 import { SCORING } from '../scenarios/limits.js'
 
 /*
@@ -24,6 +24,8 @@ export default function Debrief() {
     const W = [
       { type: 'title', text: r.scenarioTitle, sub: `${MODES[r.mode]} · ${r.completed ? 'procedimiento completo' : 'procedimiento incompleto'}` },
       { type: 'banner', text: `${verdict[0]} · ${r.score} / 100`, color: verdict[1] },
+      /* los botones van arriba: el panel tiene alto máximo y lo de abajo puede no caber */
+      { type: 'buttons', cols: 2, h: 60, items: [{ id: 'repetir', label: 'Repetir', active: true, color: C.accent }, { id: 'lobby', label: 'Volver al lobby' }] },
       { type: 'kv', rows: [
         { k: 'Tiempo', v: mmss(r.durationSec) },
         { k: 'Errores críticos', v: r.criticos, color: r.criticos ? C.bad : C.ok },
@@ -33,12 +35,19 @@ export default function Debrief() {
       ] },
     ]
     if (r.mode === 'evaluacion') W.push({ type: 'text', text: `Para aprobar: ${SCORING.pass} puntos o más y ningún error crítico.`, small: true, color: C.mute })
-    const errs = (r.errorsFull || []).slice(0, 6)
-    if (errs.length) {
+    /* errores agrupados: los «fuera de orden» se cuentan en una sola línea; explicación solo en los críticos */
+    const all = r.errorsFull || []
+    const order = all.filter((e) => e.id === 'fuera-de-orden')
+    const rest = all.filter((e) => e.id !== 'fuera-de-orden')
+    const sevRank = { critico: 0, mayor: 1, menor: 2 }
+    const items = rest.slice().sort((a, b) => sevRank[a.severity] - sevRank[b.severity]).slice(0, 4)
+      .map((e) => ({ mark: SEV[e.severity]?.[0] || '•', color: SEV[e.severity]?.[1], text: e.message + (e.severity === 'critico' && e.explain ? ' — ' + e.explain : '') }))
+    if (order.length) items.push({ mark: SEV.menor[0], color: SEV.menor[1], text: `${order.length} paso${order.length > 1 ? 's' : ''} fuera de orden: el procedimiento tiene una secuencia.` })
+    if (items.length) {
       W.push({ type: 'divider' })
       W.push({ type: 'text', text: 'Errores', big: true })
-      W.push({ type: 'list', items: errs.map((e) => ({ mark: SEV[e.severity]?.[0] || '•', color: SEV[e.severity]?.[1], text: e.message + (e.explain ? ' — ' + e.explain : '') })) })
-      if ((r.errorsFull || []).length > errs.length) W.push({ type: 'text', text: `… y ${r.errorsFull.length - errs.length} más (ver el panel del instructor).`, small: true })
+      W.push({ type: 'list', items })
+      if (rest.length > 4) W.push({ type: 'text', text: `… y ${rest.length - 4} más (detalle en el panel del instructor).`, small: true })
     }
     if (r.debrief?.length) {
       W.push({ type: 'divider' })
@@ -46,11 +55,12 @@ export default function Debrief() {
       W.push({ type: 'list', items: r.debrief.map((t, i) => ({ mark: String(i + 1), color: C.accent, text: t })) })
     }
     W.push({ type: 'text', text: 'Código del intento: ' + r.attemptId, small: true, color: C.mute })
-    W.push({ type: 'buttons', cols: 2, h: 60, items: [{ id: 'repetir', label: 'Repetir', active: true, color: C.accent }, { id: 'lobby', label: 'Volver al lobby' }] })
     return W
   }, [r])
 
   useEffect(() => { if (ref.current) { const vr = gl.xr.isPresenting; placeInFront(ref.current, vr ? 1.0 : 1.05, vr ? -0.1 : -0.05) } }, [r, gl])
+
+  useKeepInView(ref, gl.xr.isPresenting ? 1.0 : 1.05, -0.08)
 
   const onAction = (id) => {
     if (id === 'repetir') startScenario(r.scenarioId, { mode: r.mode })

@@ -168,7 +168,7 @@ export function createRun(scenario, { mode = 'aprendizaje', seed = 1 } = {}) {
           for (const s of ph.steps) {
             if (done.has(s.id) || s === next || s.on) continue
             const v = stepCond(s, null)
-            if (v && !prevTrue.get(s.id)) flagOrder(evs, s)
+            if (v && !prevTrue.get(s.id) && !initTrue.has(s.id)) flagOrder(evs, s)
             prevTrue.set(s.id, v)
           }
         }
@@ -189,13 +189,16 @@ export function createRun(scenario, { mode = 'aprendizaje', seed = 1 } = {}) {
       for (const s of scenario.phases[i].steps) {
         if (s.on || s.noOrder) continue
         const v = stepCond(s, null)
-        if (v && prevTrue.get(s.id) === false) flagOrder(evs, s)
+        if (v && prevTrue.get(s.id) === false && !initTrue.has(s.id)) flagOrder(evs, s)
         prevTrue.set(s.id, v)
       }
     }
   }
   /* estado inicial de las transiciones (lo que ya es cierto al empezar no cuenta como «fuera de orden») */
-  for (const ph of scenario.phases) for (const s of ph.steps) if (!s.on) prevTrue.set(s.id, !!evalCond(s.done, ctx()))
+  /* los pasos que ya se cumplen al empezar (restaurar: sin candados, válvulas abiertas…) nunca cuentan como
+     «fuera de orden»: vuelven a cumplirse al deshacer algo, p. ej. quitar un candado mal puesto */
+  const initTrue = new Set()
+  for (const ph of scenario.phases) for (const s of ph.steps) if (!s.on) { const v = !!evalCond(s.done, ctx()); prevTrue.set(s.id, v); if (v) initTrue.add(s.id) }
 
   function finish(evs, completed) {
     if (status === 'finished' || status === 'abandoned') return
