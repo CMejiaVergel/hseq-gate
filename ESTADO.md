@@ -9,12 +9,14 @@ sobre la base técnica de Smart Plant 3D (`..\digital-twins-3d\mr-twin`).
 
 ## Estado actual
 - Etapa: **9 — Punto de revisión (PARADA)**. Todas las etapas 0–8 terminadas y verificadas.
-- Versión: **1.0.0** · En producción: **no** (falta que el dueño despliegue)
+- Versión: **1.0.0** · En producción: **no** · Remoto: https://github.com/CMejiaVergel/hseq-gate (main subido 2026-10-17)
 - Funciona: lobby → 3 escenarios (LOTO, alturas, espacios confinados) + demo, en los 3 modos, en PC y en VR (emulador) → debrief → registros → panel del instructor → certificado; PWA sin conexión
 - Bloqueos: ninguno técnico; lo pendiente requiere al dueño (ver abajo)
 
 ## Siguiente paso
-**Revisión del dueño** (resumen de abajo). Después: acciones (a)–(e). El asistente no despliega, no hace push ni firma.
+Pruebas del dueño en el servidor local y ajustes en la web; luego despliegue a /hseq/ (lo hace el asistente cuando el dueño lo pida) y después el APK.
+- PC: `npm --prefix app run dev:plain` → http://localhost:5174/hseq/
+- Visor en la misma wifi: `npm --prefix app run dev:quest` → https://192.168.1.60:5175/hseq/ (aceptar el certificado propio una vez)
 
 ## RESUMEN DE REVISIÓN (Etapa 9)
 ### Qué hay
@@ -48,7 +50,7 @@ Ver sección «Decisiones tomadas» (más abajo): ajustes de puntaje a 100 en LO
 
 ### Acciones que requieren al dueño
 - **(a) Aprobar dominio/ruta y desplegar**: por defecto `https://digital-twins.voltac.com.co/hseq/` → `powershell -ExecutionPolicy Bypass -File .deploy.ps1` (probado en seco con `-DryRun`). Alternativa subdominio: requiere DNS + nginx + certificado.
-- **(b) Crear el repo remoto y hacer push**: `gh repo create CMejiaVergel/hseq-gate --private --source . --push` (o crear en GitHub y `git remote add origin … ; git push -u origin main`). Actualizar la columna «Remoto» en `VOLTAC_DEVPROYECTOS.md`.
+- ~~(b) Crear el repo remoto y hacer push~~ ✅ hecho 2026-10-17 (CMejiaVergel/hseq-gate): `gh repo create CMejiaVergel/hseq-gate --private --source . --push` (o crear en GitHub y `git remote add origin … ; git push -u origin main`). Actualizar la columna «Remoto» en `VOLTAC_DEVPROYECTOS.md`.
 - **(c) Crear la llave y firmar el APK**: pasos exactos en `docs/10-despliegue-y-apk.md` (bubblewrap update → keytool → gradlew → zipalign → apksigner → `quest-apkHSEQGate.apk`); agregar la entrada de `co.com.voltac.hseqgate` a `/.well-known/assetlinks.json` SIN borrar la de Smart Plant 3D. La llave nunca va al repo.
 - **(d) Validación HSE del contenido**: un profesional HSE debe revisar pasos, mensajes y umbrales en `app/src/scenarios/loto.js`, `alturas.js`, `confinados.js` y `limits.js` (todo lo marcado `// VALIDAR HSE`).
 - **(e) Developer Dashboard**: crear la app «HSEQ Gate» (organización Voltac Systems), subir el APK al canal **ALPHA**, invitar correos; subir `appVersionCode` en cada envío.
@@ -115,6 +117,9 @@ npm run dev:plain -- --port 5174             # desarrollo (el 5173 lo usa Smart 
 - (ninguno)
 
 ## Bitácora
+### 2026-10-17 — Repo remoto y servidor local
+- Remoto `origin` = github.com/CMejiaVergel/hseq-gate; `main` subido. Scripts `dev:plain` (http :5174) y `dev:quest` (https :5175, red local) + `.claude/launch.json`. Decisión del dueño: probar y ajustar en la web antes de desplegar y de crear el APK.
+
 ### 2026-10-17 — Etapas 8 y 9
 - v1.0.0; `deploy.ps1` (-DryRun probado), `deploy-remote.sh`, `quest.ps1` (sintaxis verificada, -PullResults), `quest-apk/twa-manifest.json`, docs/10 con el orden exacto, README con capturas. Verificación final: build OK, 86 pruebas, smoke OK (3 escenarios × 3 modos, críticos, instructor, certificado, offline), emulador VR OK.
 - Resumen de revisión escrito. **Parada**: despliegue, push, firma del APK, validación HSE y tienda quedan para el dueño.

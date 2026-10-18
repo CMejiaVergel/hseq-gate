@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "hseq-pc", "runtimeExecutable": "npm", "runtimeArgs": ["--prefix", "app", "run", "dev:plain"], "port": 5174 },
+    { "name": "hseq-visor", "runtimeExecutable": "npm", "runtimeArgs": ["--prefix", "app", "run", "dev:quest"], "port": 5175, "url": "https://localhost:5175" }
+  ]
+}
